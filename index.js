@@ -18,6 +18,10 @@ app.post('/webhook/kizeo', (req, res) => {
   res.status(200).send('Webhook recibido correctamente');
 });
 
+
+app.get("/index",(req,res) =>{
+    res.send("Funcionadndo")
+})
 // Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);

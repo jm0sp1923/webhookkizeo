@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
 // Ruta para el webhook
-app.post('/webhook/kizeo', (req, res) => {
+app.post('/webhook', (req, res) => {
   const data = req.body;
 
   console.log('Datos recibidos desde Kizeo:', data);

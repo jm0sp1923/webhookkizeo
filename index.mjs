@@ -41,29 +41,38 @@ function fetchAppiKizeo() {
     }
   })
     .then(response => {
+      // Verificar si la solicitud fue exitosa
       if (!response.ok) {
         throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
       }
-      // Verificar si la respuesta es un archivo Word
+
+      // Verificar si el tipo de contenido es de un archivo Word
       const contentType = response.headers.get("content-type");
+      console.log('Tipo de contenido recibido:', contentType);
+
       if (contentType && contentType.includes("application/vnd.openxmlformats-officedocument.wordprocessingml.document")) {
         return response.buffer();  // Obtener los datos binarios del archivo
       } else {
-        throw new Error('El archivo no es de tipo Word');
+        return response.text(); // Obtener la respuesta como texto si no es Word
       }
     })
-    .then(buffer => {
-      // Guardar el archivo en el servidor
-      const filePath = './documento_kizeo.docx';
-      fs.writeFileSync(filePath, buffer);  // Guardar el archivo en el servidor
-      console.log('Archivo Word descargado y guardado en:', filePath);
+    .then(data => {
+      // Si es un archivo Word, guardarlo
+      if (Buffer.isBuffer(data)) {
+        const filePath = './documento_kizeo.docx';
+        fs.writeFileSync(filePath, data);  // Guardar el archivo en el servidor
+        console.log('Archivo Word descargado y guardado en:', filePath);
+      } else {
+        // Si no es un archivo Word, imprimir el contenido recibido
+        console.error('Respuesta de Kizeo:', data);
+        throw new Error('La respuesta de Kizeo no es un archivo Word');
+      }
     })
     .catch(error => {
       console.error('Error al hacer la solicitud a Kizeo:', error);
       throw error;
     });
 }
-
 
 // Ruta de prueba
 app.get("/index", (req, res) => {

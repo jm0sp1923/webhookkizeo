@@ -36,15 +36,25 @@ function fetchAppiKizeo() {
   return fetch(url, {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${token}`  // Pasar el token en el encabezado Authorization
+      'Authorization': token  // Enviar el token correctamente en la cabecera Authorization
     }
   })
-    .then(response => response.json())  // Parsear la respuesta JSON
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Error al hacer la solicitud: ${response.statusText}`);
+      }
+      return response.json();  // Parsear la respuesta JSON
+    })
+    .then(data => {
+      console.log('Datos obtenidos desde la API de Kizeo:', data);
+      return data;
+    })
     .catch(error => {
       console.error('Error al hacer la solicitud a Kizeo:', error);
       throw error;  // Lanzar el error para que se pueda manejar en el controlador del webhook
     });
 }
+
 
 // Ruta de prueba
 app.get("/index", (req, res) => {

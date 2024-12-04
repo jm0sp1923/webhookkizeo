@@ -17,61 +17,58 @@ app.post('/webhook', (req, res) => {
   console.log('Datos recibidos desde Kizeo:', data);
 
   // Realizar la solicitud a la API de Kizeo cuando llegue el webhook
-  fetchAppiKizeo()
-    .then(kizeoData => {
-      console.log('Datos obtenidos desde la API de Kizeo:', kizeoData);
-      // Procesar los datos de Kizeo (guardar en base de datos, notificar, etc.)
+  fetchApiKizeo()
+    .then(() => {
+      console.log('Datos obtenidos y procesados correctamente');
       res.status(200).send('Webhook recibido correctamente');
     })
     .catch(error => {
-      console.error('Error al obtener datos de Kizeo:', error);
+      console.error('Error al obtener o procesar datos de Kizeo:', error);
       res.status(500).send('Error al procesar la solicitud');
     });
 });
 
 // Función para hacer la solicitud a la API de Kizeo
-function fetchAppiKizeo() {
-  const url = 'https://www.kizeoforms.com/rest/v3/forms/1038111/data/214107920/exports/1543015';
+async function fetchApiKizeo() {
+  const url = 'https://www.kizeoforms.com/rest/v3/forms/1038111/data/214107920/exports/1543015/pdf';
   const token = 'appi_kizeo_48ee84f9b7fe23279af7fdadf738c8982058bf44';
 
-  return fetch(url, {
-    method: 'GET',
-    headers: {
-      'Authorization': token
-    }
-  })
-    .then(response => {
-      // Verificar si la solicitud fue exitosa
-      if (!response.ok) {
-        throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': token
       }
-
-      // Verificar si el tipo de contenido es de un archivo Word
-      const contentType = response.headers.get("content-type");
-      console.log('Tipo de contenido recibido:', contentType);
-
-      if (contentType && contentType.includes("application/vnd.openxmlformats-officedocument.wordprocessingml.document")) {
-        return response.buffer();  // Obtener los datos binarios del archivo
-      } else {
-        return response.text(); // Obtener la respuesta como texto si no es Word
-      }
-    })
-    .then(data => {
-      // Si es un archivo Word, guardarlo
-      if (Buffer.isBuffer(data)) {
-        const filePath = './documento_kizeo.docx';
-        fs.writeFileSync(filePath, data);  // Guardar el archivo en el servidor
-        console.log('Archivo Word descargado y guardado en:', filePath);
-      } else {
-        // Si no es un archivo Word, imprimir el contenido recibido
-        console.error('Respuesta de Kizeo:', data);
-        throw new Error('La respuesta de Kizeo no es un archivo Word');
-      }
-    })
-    .catch(error => {
-      console.error('Error al hacer la solicitud a Kizeo:', error);
-      throw error;
     });
+
+    // Verificar si la solicitud fue exitosa
+    if (!response.ok) {
+      throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
+    }
+
+    // Verificar si el tipo de contenido es un archivo Word
+    const contentType = response.headers.get('content-type');
+    console.log('Tipo de contenido recibido:', contentType);
+
+    if (contentType && contentType.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+      const data = await response.buffer();  // Obtener los datos binarios del archivo
+      saveWordFile(data);  // Guardar el archivo en el servidor
+    } else {
+      const text = await response.text();  // Obtener la respuesta como texto si no es Word
+      console.error('Respuesta de Kizeo:', text);
+      throw new Error('La respuesta de Kizeo no es un archivo Word');
+    }
+  } catch (error) {
+    console.error('Error al hacer la solicitud a Kizeo:', error);
+    throw error;
+  }
+}
+
+// Función para guardar el archivo Word
+function saveWordFile(data) {
+  const filePath = './documento_kizeo.docx';
+  fs.writeFileSync(filePath, data);  // Guardar el archivo en el servidor
+  console.log('Archivo Word descargado y guardado en:', filePath);
 }
 
 // Ruta de prueba

@@ -1,7 +1,8 @@
 import express from 'express';
-import { json } from 'body-parser';
+import pkg from 'body-parser';
 import fetch from 'node-fetch'; // Importar node-fetch
 
+const { json } = pkg;
 const app = express();
 const PORT = process.env.PORT || 3000;
 

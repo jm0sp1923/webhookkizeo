@@ -1,6 +1,7 @@
 import express from 'express';
 import pkg from 'body-parser';
 import fetch from 'node-fetch'; // Importar node-fetch
+const fs = require('fs');  // Para guardar el archivo localmente
 
 const { json } = pkg;
 const app = express();
@@ -36,22 +37,31 @@ function fetchAppiKizeo() {
   return fetch(url, {
     method: 'GET',
     headers: {
-      'Authorization': token  // Enviar el token correctamente en la cabecera Authorization
+      'Authorization': token
     }
   })
     .then(response => {
       if (!response.ok) {
-        throw new Error(`Error al hacer la solicitud: ${response.statusText}`);
+        throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
       }
-      return response.json();  // Parsear la respuesta JSON
+      // Verificar si la respuesta es un archivo binario
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/vnd.openxmlformats-officedocument.wordprocessingml.document")) {
+        // Si la respuesta es un archivo Word, manejamos los datos binarios
+        return response.buffer();  // Usar .buffer() para obtener los datos binarios
+      } else {
+        throw new Error('El archivo no es de tipo Word');
+      }
     })
-    .then(data => {
-      console.log('Datos obtenidos desde la API de Kizeo:', data);
-      return data;
+    .then(buffer => {
+      // Guardar el archivo en el servidor o enviarlo al cliente
+      const filePath = './documento_kizeo.docx';  // Ruta donde se guardará el archivo
+      fs.writeFileSync(filePath, buffer);  // Guardar el archivo en el servidor
+      console.log('Archivo Word descargado y guardado en:', filePath);
     })
     .catch(error => {
       console.error('Error al hacer la solicitud a Kizeo:', error);
-      throw error;  // Lanzar el error para que se pueda manejar en el controlador del webhook
+      throw error;
     });
 }
 

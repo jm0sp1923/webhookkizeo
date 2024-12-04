@@ -1,7 +1,7 @@
 import express from 'express';
 import pkg from 'body-parser';
 import fetch from 'node-fetch'; // Importar node-fetch
-const fs = require('fs');  // Para guardar el archivo localmente
+import fs from 'fs';
 
 const { json } = pkg;
 const app = express();
@@ -44,18 +44,17 @@ function fetchAppiKizeo() {
       if (!response.ok) {
         throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
       }
-      // Verificar si la respuesta es un archivo binario
+      // Verificar si la respuesta es un archivo Word
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/vnd.openxmlformats-officedocument.wordprocessingml.document")) {
-        // Si la respuesta es un archivo Word, manejamos los datos binarios
-        return response.buffer();  // Usar .buffer() para obtener los datos binarios
+        return response.buffer();  // Obtener los datos binarios del archivo
       } else {
         throw new Error('El archivo no es de tipo Word');
       }
     })
     .then(buffer => {
-      // Guardar el archivo en el servidor o enviarlo al cliente
-      const filePath = './documento_kizeo.docx';  // Ruta donde se guardará el archivo
+      // Guardar el archivo en el servidor
+      const filePath = './documento_kizeo.docx';
       fs.writeFileSync(filePath, buffer);  // Guardar el archivo en el servidor
       console.log('Archivo Word descargado y guardado en:', filePath);
     })

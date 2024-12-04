@@ -20,6 +20,7 @@ app.post('/webhook', (req, res) => {
 
 
 app.get("/index",(req,res) =>{
+    console.log("Funcionando")
     res.send("Funcionadndo")
 })
 // Iniciar el servidor

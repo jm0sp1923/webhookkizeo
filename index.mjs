@@ -27,18 +27,19 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.post('/webhook', async (req, res) => {
+
+  console.log('Webhook recibido:', req.body);
   try {
     const response = await fetch(`https://forms.kizeo.com/rest/v3/forms/${formData.formId}/data/${formData.recordId}/exports/${formData.exportId}/pdf`, {
       method: 'GET',
       headers: {
         Authorization: process.env.KIZEO_API_KEY
       }
-    });
+    }); 
 
     if (!response.ok) {
       throw new Error(`Error al obtener el PDF: ${response.statusText}`);
     }
-
     const fileName = response.headers.get('x-filename-custom') || 'archivo.pdf';
     const blob = await response.blob();
     const buffer = Buffer.from(await blob.arrayBuffer());

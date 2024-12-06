@@ -14,11 +14,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT;
 
-const formData = {
-  formId: '1022053',
-  recordId: '214256685',
-  exportId: '1540559'
-};
+
+
 
 // Middleware para manejar JSON
 app.use(express.json());
@@ -28,9 +25,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.post('/webhook', async (req, res) => {
 
+  const exportId = process.env.EXPORT_ID
+  const { id: dataId, data: { form_id: formId } } = req.body;
   console.log('Webhook recibido:', req.body);
   try {
-    const response = await fetch(`https://forms.kizeo.com/rest/v3/forms/${formData.formId}/data/${formData.recordId}/exports/${formData.exportId}/pdf`, {
+    const response = await fetch(`https://forms.kizeo.com/rest/v3/forms/${formId}/data/${dataId}/exports/${exportId}/pdf`, {
       method: 'GET',
       headers: {
         Authorization: process.env.KIZEO_API_KEY

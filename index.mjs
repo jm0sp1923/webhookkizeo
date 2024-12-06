@@ -1,48 +1,65 @@
+import express from 'express';
 import fetch from 'node-fetch';
-import { writeFile } from 'fs/promises'; // Importación al inicio
+import { writeFile } from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
-async function obtenerPdf() {
-  const response = await fetch('https://forms.kizeo.com/rest/v3/forms/1022053/data/214121059/exports/1540559/pdf', {
-    method: 'GET',
-    headers: {
-      Authorization: 'appi_kizeo_48ee84f9b7fe23279af7fdadf738c8982058bf44'
-    }
-  });
+dotenv.config();
 
-  if (!response.ok) {
-    throw new Error(`Error al obtener el PDF: ${response.statusText}`);
-  }
+// Definir __dirname en ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  // Obtener el nombre del archivo desde el encabezado 'x-filename-custom'
-  const fileName = response.headers.get('x-filename-custom') ; // Usar el valor de 'x-filename-custom' o un valor por defecto
+const app = express();
+const port = process.env.PORT;
 
-  // Convertir el contenido a un buffer
-  const blob = await response.blob();
-  const buffer = Buffer.from(await blob.arrayBuffer());
+const formData = {
+  formId: '1022053',
+  recordId: '214256685',
+  exportId: '1540559'
+};
 
-  // Guardar el archivo con el nombre obtenido
-  await writeFile(fileName, buffer);
-  console.log(`PDF descargado exitosamente como ${fileName}`);
-}
+// Middleware para manejar JSON
+app.use(express.json());
 
-obtenerPdf().catch(console.error);
-
-function obtenerForms() {
-  fetch('https://forms.kizeo.com/rest/v3/forms', {
-    method: 'GET',
-    headers: {
-      Authorization: 'appi_kizeo_48ee84f9b7fe23279af7fdadf738c8982058bf44',
-      'Content-Type': 'application/json'
-    }
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Error en la solicitud: ${response.status}`);
+app.post('/webhook', async (req, res) => {
+  try {
+    const response = await fetch(`https://forms.kizeo.com/rest/v3/forms/${formData.formId}/data/${formData.recordId}/exports/${formData.exportId}/pdf`, {
+      method: 'GET',
+      headers: {
+        Authorization: process.env.KIZEO_API_KEY
       }
-      return response.json(); // Convierte la respuesta a JSON
-    })
-    .then(data => {
-      console.log('Datos recibidos:', data); // Trabaja con los datos
-    })
-    .catch(error => console.error('Error:', error));
-}
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al obtener el PDF: ${response.statusText}`);
+    }
+
+    const fileName = response.headers.get('x-filename-custom') || 'archivo.pdf';
+    const blob = await response.blob();
+    const buffer = Buffer.from(await blob.arrayBuffer());
+
+    const filePath = path.join(__dirname, 'uploads', fileName);
+    await writeFile(filePath, buffer);
+
+    console.log(`PDF descargado exitosamente como ${fileName}`);
+    res.status(200).json({ message: 'Archivo PDF descargado exitosamente', fileName });
+
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'main' });
+});
+
+app.get('/index', (req, res) => {
+  res.status(200).json({ message: 'index' });
+});
+
+app.listen(port, () => {
+  console.log(`Servidor webhook escuchando en http://localhost:${port}`);
+});

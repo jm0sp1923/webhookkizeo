@@ -23,6 +23,9 @@ const formData = {
 // Middleware para manejar JSON
 app.use(express.json());
 
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.post('/webhook', async (req, res) => {
   try {
     const response = await fetch(`https://forms.kizeo.com/rest/v3/forms/${formData.formId}/data/${formData.recordId}/exports/${formData.exportId}/pdf`, {

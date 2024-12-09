@@ -1,48 +1,54 @@
+import express from 'express';
 import fetch from 'node-fetch';
-import { writeFile } from 'fs/promises'; // Importación al inicio
+import { writeFile } from 'fs/promises';
+import path from 'path';
 
-async function obtenerPdf() {
-  const response = await fetch('https://forms.kizeo.com/rest/v3/forms/1022053/data/214121059/exports/1540559/pdf', {
-    method: 'GET',
-    headers: {
-      Authorization: 'appi_kizeo_48ee84f9b7fe23279af7fdadf738c8982058bf44'
-    }
-  });
+const app = express();
+const port = process.env.PORT || 3000; // Puerto en el que se escuchará el webhook
 
-  if (!response.ok) {
-    throw new Error(`Error al obtener el PDF: ${response.statusText}`);
-  }
+// Middleware para manejar JSON
+app.use(express.json());
 
-  // Obtener el nombre del archivo desde el encabezado 'x-filename-custom'
-  const fileName = response.headers.get('x-filename-custom') ; // Usar el valor de 'x-filename-custom' o un valor por defecto
+app.post('/webhook', async (req, res) => {
+  const { formId, recordId, exportId } = req.body; // Aquí asumimos que la petición contiene estos parámetros
 
-  // Convertir el contenido a un buffer
-  const blob = await response.blob();
-  const buffer = Buffer.from(await blob.arrayBuffer());
-
-  // Guardar el archivo con el nombre obtenido
-  await writeFile(fileName, buffer);
-  console.log(`PDF descargado exitosamente como ${fileName}`);
-}
-
-obtenerPdf().catch(console.error);
-
-function obtenerForms() {
-  fetch('https://forms.kizeo.com/rest/v3/forms', {
-    method: 'GET',
-    headers: {
-      Authorization: 'appi_kizeo_48ee84f9b7fe23279af7fdadf738c8982058bf44',
-      'Content-Type': 'application/json'
-    }
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Error en la solicitud: ${response.status}`);
+  try {
+    const response = await fetch(`https://forms.kizeo.com/rest/v3/forms/${formId}/data/${recordId}/exports/${exportId}/pdf`, {
+      method: 'GET',
+      headers: {
+        Authorization: 'appi_kizeo_48ee84f9b7fe23279af7fdadf738c8982058bf44'
       }
-      return response.json(); // Convierte la respuesta a JSON
-    })
-    .then(data => {
-      console.log('Datos recibidos:', data); // Trabaja con los datos
-    })
-    .catch(error => console.error('Error:', error));
-}
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al obtener el PDF: ${response.statusText}`);
+    }
+
+    // Obtener el nombre del archivo desde los encabezados
+    const fileName = response.headers.get('x-filename-custom') || 'archivo.pdf';
+
+    // Convertir la respuesta a un buffer
+    const blob = await response.blob();
+    const buffer = Buffer.from(await blob.arrayBuffer());
+
+    // Guardar el archivo en el directorio 'uploads'
+    const filePath = path.join(__dirname, 'uploads', fileName);
+    await writeFile(filePath, buffer);
+
+    console.log(`PDF descargado exitosamente como ${fileName}`);
+    res.status(200).json({ message: 'Archivo PDF descargado exitosamente', fileName });
+
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/index", async(req,res) =>{
+  res.send("Funcionando")
+})
+
+// Iniciar el servidor
+app.listen(port, () => {
+  console.log(`Servidor webhook escuchando en http://localhost:${port}`);
+});

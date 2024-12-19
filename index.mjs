@@ -72,6 +72,7 @@ app.post('/webhook', async (req, res) => {
     }
 
     const fileName = response.headers.get('x-filename-custom') || 'archivo.pdf';
+    const sanitizedFileName = fileName.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Elimina tildes
     const blob = await response.blob();
     const buffer = Buffer.from(await blob.arrayBuffer());
 
@@ -84,11 +85,10 @@ app.post('/webhook', async (req, res) => {
       return res.status(500).json({ error: 'Error al crear directorio de uploads' });
     }
 
-    const filePath = path.join(uploadsDir, fileName);
+    const filePath = path.join(uploadsDir, sanitizedFileName);
     await writeFile(filePath, buffer);
 
-    console.log(`PDF descargado exitosamente como ${fileName}`);
-    res.status(200).json({ message: 'Archivo PDF descargado exitosamente', fileName });
+    res.status(200).json({ message: 'Archivo PDF descargado exitosamente', sanitizedFileName });
 
   } catch (error) {
     console.error('Error al descargar el archivo:', error);

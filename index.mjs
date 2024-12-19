@@ -27,9 +27,34 @@ app.use('/uploads', express.static(uploadsDir));
 
 app.post('/webhook', async (req, res) => {
   console.log("Webhook recibido");
-  const exportId = process.env.EXPORT_ID;
+  const exportId = 0;
   const { id: dataId, data: { form_id: formId } } = req.body;
   console.log('Webhook recibido:', req.body);
+
+  
+  try {
+    const response = await fetch(`https://www.kizeoforms.com/rest/v3/forms/${formId}/exports`, {
+      method: 'GET',
+      headers: {
+        Authorization: process.env.KIZEO_API_KEY
+      }
+    });
+  
+    const data = await response.json(); // Convertir la respuesta a JSON
+  
+    if (data.status === 'ok' && data.exports.length > 0) {
+      const exportId = data.exports[0].id;  // Obtener el exportId
+      console.log('Export ID:', exportId);
+  
+      // Ahora puedes usar el exportId en el siguiente paso de tu flujo
+    } else {
+      console.log('No se encontraron exportaciones o el estado no es "ok".');
+    }
+  
+  } catch (error) {
+    console.error('Error al obtener el exportId:', error);
+  }
+  
 
   try {
     const response = await fetch(`https://forms.kizeo.com/rest/v3/forms/${formId}/data/${dataId}/exports/${exportId}/pdf`, {

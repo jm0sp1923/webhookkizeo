@@ -72,7 +72,10 @@ app.post('/webhook', async (req, res) => {
     }
 
     const fileName = response.headers.get('x-filename-custom') || 'archivo.pdf';
-    const sanitizedFileName = fileName.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Elimina tildes
+   
+   // Eliminar caracteres especiales (mantener solo letras, números, puntos, guiones y guiones bajos)
+   const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '');
+   console.log("Nombre sanitized"+ sanitizedFileName);
     const blob = await response.blob();
     const buffer = Buffer.from(await blob.arrayBuffer());
 

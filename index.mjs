@@ -88,6 +88,7 @@ app.post('/webhook', async (req, res) => {
     const filePath = path.join(uploadsDir, sanitizedFileName);
     await writeFile(filePath, buffer);
 
+    console.log(`PDF descargado exitosamente como ${sanitizedFileName}`);
     res.status(200).json({ message: 'Archivo PDF descargado exitosamente', sanitizedFileName });
 
   } catch (error) {

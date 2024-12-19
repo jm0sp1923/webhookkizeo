@@ -57,6 +57,12 @@ app.post('/webhook', async (req, res) => {
   
 
   try {
+
+    console.log('Form ID:', formId);
+    console.log('Data ID:', dataId);
+    console.log('Export ID:', exportId);
+
+
     const response = await fetch(`https://forms.kizeo.com/rest/v3/forms/${formId}/data/${dataId}/exports/${exportId}/pdf`, {
       method: 'GET',
       headers: {

@@ -1,17 +1,14 @@
 {
   "dependencies": {
-    "apikizeo": "file:",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
     "express": "^4.21.1",
     "node-fetch": "^3.3.2"
   },
   "scripts": {
     "start": "node index.mjs"
   },
-  "name": "apikizeo",
-  "version": "1.0.0",
-  "main": "index.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
 }

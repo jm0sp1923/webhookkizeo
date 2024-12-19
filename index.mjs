@@ -2,36 +2,46 @@ import express from 'express';
 import fetch from 'node-fetch';
 import { writeFile } from 'fs/promises';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// Definir __dirname en ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-const port = process.env.PORT || 3000; // Puerto en el que se escuchará el webhook
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views')); // Configura la carpeta donde estarán tus plantillas
+const port = process.env.PORT || 3000 ;
 
 // Middleware para manejar JSON
 app.use(express.json());
 
-app.post('/webhook', async (req, res) => {
-  const { formId, recordId, exportId } = req.body; // Aquí asumimos que la petición contiene estos parámetros
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+app.post('/webhook', async (req, res) => {
+
+  const exportId = process.env.EXPORT_ID
+  const { id: dataId, data: { form_id: formId } } = req.body;
+  console.log('Webhook recibido:', req.body);
   try {
-    const response = await fetch(`https://forms.kizeo.com/rest/v3/forms/${formId}/data/${recordId}/exports/${exportId}/pdf`, {
+    const response = await fetch(`https://forms.kizeo.com/rest/v3/forms/${formId}/data/${dataId}/exports/${exportId}/pdf`, {
       method: 'GET',
       headers: {
-        Authorization: 'appi_kizeo_48ee84f9b7fe23279af7fdadf738c8982058bf44'
+        Authorization: process.env.KIZEO_API_KEY
       }
-    });
+    }); 
 
     if (!response.ok) {
       throw new Error(`Error al obtener el PDF: ${response.statusText}`);
     }
-
-    // Obtener el nombre del archivo desde los encabezados
     const fileName = response.headers.get('x-filename-custom') || 'archivo.pdf';
-
-    // Convertir la respuesta a un buffer
     const blob = await response.blob();
     const buffer = Buffer.from(await blob.arrayBuffer());
 
-    // Guardar el archivo en el directorio 'uploads'
     const filePath = path.join(__dirname, 'uploads', fileName);
     await writeFile(filePath, buffer);
 
@@ -44,11 +54,15 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
-app.get("/index", async(req,res) =>{
-  res.send("Funcionando")
-})
+app.get('/', (req, res) => {
+  res.render('index');
+});
 
-// Iniciar el servidor
+
+app.get('/index', (req, res) => {
+  res.status(200).json({ message: 'index' });
+});
+
 app.listen(port, () => {
   console.log(`Servidor webhook escuchando en http://localhost:${port}`);
 });

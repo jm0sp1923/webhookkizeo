@@ -23,7 +23,7 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.post('/webhook', async (req, res) => {
-
+  console.log("Webhook")
   const exportId = process.env.EXPORT_ID
   const { id: dataId, data: { form_id: formId } } = req.body;
   console.log('Webhook recibido:', req.body);
@@ -53,6 +53,9 @@ app.post('/webhook', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+
+
 
 app.get('/', (req, res) => {
   res.render('index');

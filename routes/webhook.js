@@ -13,11 +13,12 @@ const site_url = process.env.SITE_URL;
 
 router.post('/webhook', async (req, res) => {
   const { id: dataId, data: { form_id: formId, fields } } = req.body;
-  console.log('Respuesta Webhook:', req.body);
+  
+  console.log('Datos recibidos:', JSON.stringify(req.body, null, 2));
 
   try {
     // Extraer la zona
-    print('fields:', fields);
+    console.log('fields:', fields);
     const zona = fields.zonas.value;
     if (!zona) {
       throw new Error('Zona no encontrada en los datos recibidos.');

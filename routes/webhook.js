@@ -12,19 +12,25 @@ const uploadsDir = path.join(process.cwd(), 'uploads');
 const site_url = process.env.SITE_URL;
 
 router.post('/webhook', async (req, res) => {
-  const { id: dataId, data: { form_id: formId, zona } } = req.body; // Extraer la zona
-  console.log(dataId, formId, zona);
+  const { id: dataId, data: { form_id: formId, fields } } = req.body;
   console.log('Respuesta Webhook:', req.body);
 
   try {
-    // Lógica para determinar la carpeta de destino
+    // Extraer la zona
+    const zona = fields?.zonas?.value;
+    if (!zona) {
+      throw new Error('Zona no encontrada en los datos recibidos.');
+    }
+    console.log('Zona extraída:', zona);
+
+    // Determinar la carpeta de destino según la zona
     let destinationFolder;
-    if (zona === 'zona 1') {
+    if (zona === 'Zona 1') {
       destinationFolder = process.env.DESTINATION_FOLDER_ZONA_1;
-    } else if (zona === 'zona 2') {
+    } else if (zona === 'Zona 2') {
       destinationFolder = process.env.DESTINATION_FOLDER_ZONA_2;
     } else {
-      throw new Error('Zona desconocida. No se puede determinar la carpeta de destino.');
+      throw new Error(`Zona desconocida: ${zona}. No se puede determinar la carpeta de destino.`);
     }
 
     // Obtener exportId
@@ -57,5 +63,6 @@ router.post('/webhook', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 export default router;

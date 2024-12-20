@@ -8,7 +8,7 @@
     "node-fetch": "^3.3.2"
   },
   "scripts": {
-    "start": "node index.mjs"
+    "start": "node app.mjs"
   },
   "type": "module",
   

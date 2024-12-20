@@ -12,14 +12,14 @@ const uploadsDir = path.join(process.cwd(), 'uploads');
 const site_url = process.env.SITE_URL;
 
 router.post('/webhook', async (req, res) => {
-  const { id: dataId, data: { form_id: formId, fields } } = req.body;
-  
+  const { id: dataId, data: { form_id: formId, fields:fields_id } } = req.body;
+
   console.log('Datos recibidos:', JSON.stringify(req.body, null, 2));
 
   try {
     // Extraer la zona
-    console.log('fields:', fields);
-    const zona = fields.zonas.value;
+  
+    const zona = fields.result.value;
     if (!zona) {
       throw new Error('Zona no encontrada en los datos recibidos.');
     }

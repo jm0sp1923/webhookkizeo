@@ -19,7 +19,8 @@ router.post('/webhook', async (req, res) => {
   try {
     // Extraer la zona
   
-    const zona = fields_id.result.value;
+    console.log('fields_id:', fields_id);
+    const zona = fields_id.result.value.code;
     if (!zona) {
       throw new Error('Zona no encontrada en los datos recibidos.');
     }

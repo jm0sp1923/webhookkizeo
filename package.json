@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@pnp/nodejs": "^4.7.0",
+    "@pnp/sp": "^4.7.0",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",
     "express": "^4.21.1",
@@ -8,6 +10,8 @@
   "scripts": {
     "start": "node index.mjs"
   },
+  "type": "module",
+  
   "devDependencies": {
     "nodemon": "^3.1.7"
   }

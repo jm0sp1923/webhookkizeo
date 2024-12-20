@@ -2,7 +2,8 @@ import express from 'express';
 import fetch from 'node-fetch';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import { spawn } from 'child_process';
+import { ejecutarSubidaSharePoint } from '../utils/pythonUtils.js';
+import { obtenExportId } from '../utils/kizeoUtils.js';
 import dotenv from 'dotenv';
 const router = express.Router();
 
@@ -11,59 +12,15 @@ const uploadsDir = path.join(process.cwd(), 'uploads');
 const site_url = process.env.SITE_URL;
 const destinationFolder = process.env.DESTINATION_FOLDER;
 
-function ejecutarSubidaSharePoint(siteUrl, destinationFolder, fileName) {
-  console.log("Iniciando ejecución del script Python...");
-  console.log("Site URL:", siteUrl);
-  console.log("Destination Folder:", destinationFolder);
-  console.log("File Name:", fileName);
-  
-
-  const pythonProcess = spawn("python", [
-    "subirArchivo.py",
-    siteUrl,
-    destinationFolder,
-    fileName,
-
-  ]);
-
-  pythonProcess.stdout.on("data", (data) => {
-    console.log("Respuesta del script Python:", data.toString());
-  });
-
-  pythonProcess.stderr.on("data", (data) => {
-    console.error("Error del script Python:", data.toString());
-  });
-
-  pythonProcess.on("close", (code) => {
-    console.log(`Script Python finalizado con código: ${code}`);
-  });
-}
-
-
 
 
 router.post('/webhook', async (req, res) => {
-  let exportId;
+  
   const { id: dataId, data: { form_id: formId } } = req.body;
-
+  console.log('Respuesta Webhook', req.body);
   try {
-    const response = await fetch(`https://www.kizeoforms.com/rest/v3/forms/${formId}/exports`, {
-      method: 'GET',
-      headers: { Authorization: process.env.KIZEO_API_KEY }
-    });
-
-    const data = await response.json();
-    if (data.status === 'ok' && data.exports.length > 0) {
-      exportId = data.exports[0].id;
-      console.log('Export ID:', exportId);
-    } else {
-      return res.status(400).json({ error: 'No se encontraron exportaciones o el estado no es "ok".' });
-    }
-  } catch (error) {
-    return res.status(500).json({ error: 'Error al obtener el exportId' });
-  }
-
-  try {
+    const exportId = await obtenExportId(formId, process.env.KIZEO_API_KEY);
+    console.log('Export ID obtenido:', exportId);
     const response = await fetch(`https://forms.kizeo.com/rest/v3/forms/${formId}/data/${dataId}/exports/${exportId}/pdf`, {
       method: 'GET',
       headers: { Authorization: process.env.KIZEO_API_KEY }

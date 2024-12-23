@@ -24,12 +24,12 @@ def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
         credenciales_usuario = UserCredential(usuario, contrasena)
         ctx = ClientContext(url_sitio).with_credentials(credenciales_usuario)
 
+        # Obtener el mes actual
         mes_actual_ingles = datetime.now().strftime("%B")
         mes_actual_espanol = traducir_mes(mes_actual_ingles)
         carpeta_destino = f"{carpeta_base}/{mes_actual_espanol}"
-        carpeta_destino_codificada = quote(carpeta_destino)
 
-        # Verificar si el archivo existe
+        # Construir la ruta completa del archivo
         ruta_completa_archivo = os.path.join(os.path.dirname(__file__), "uploads", nombre_del_archivo)
         if not os.path.exists(ruta_completa_archivo):
             print(f"Error: El archivo '{ruta_completa_archivo}' no se encuentra.")
@@ -37,7 +37,7 @@ def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
 
         # Verificar o crear la carpeta destino
         try:
-            ctx.web.get_folder_by_server_relative_url(carpeta_destino_codificada).execute_query()
+            ctx.web.get_folder_by_server_relative_url(carpeta_destino).execute_query()
         except Exception:
             print(f"La carpeta '{carpeta_destino}' no existe. Creando...")
             carpeta_padre = ctx.web.get_folder_by_server_relative_url(carpeta_base)
@@ -46,6 +46,7 @@ def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
 
         # Subir el archivo
         with open(ruta_completa_archivo, 'rb') as contenido_archivo:
+            carpeta_destino_codificada = quote(carpeta_destino)
             carpeta_objetivo = ctx.web.get_folder_by_server_relative_url(carpeta_destino_codificada)
             carpeta_objetivo.upload_file(os.path.basename(ruta_completa_archivo), contenido_archivo).execute_query()
 

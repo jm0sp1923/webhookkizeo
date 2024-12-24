@@ -18,18 +18,21 @@ def traducir_mes(mes_en_ingles):
     return meses.get(mes_en_ingles, mes_en_ingles)
 
 
-def crear_carpeta(ctx, carpeta_base, subcarpeta):
-    """Verifica si la subcarpeta existe en SharePoint, si no, la crea."""
+def crear_carpeta(ctx, ruta_base, subcarpeta):
+    """Verifica o crea una subcarpeta en SharePoint."""
+    ruta_completa = f"{ruta_base}/{subcarpeta}".strip('/')
     try:
-        # Verificar si la carpeta existe
-        ctx.web.get_folder_by_server_relative_url(f"{carpeta_base}/{subcarpeta}").execute_query()
+        # Verificar si la subcarpeta existe
+        ctx.web.get_folder_by_server_relative_url(ruta_completa).execute_query()
+        print(f"La carpeta '{ruta_completa}' ya existe.")
     except Exception:
-        # Crear la subcarpeta
-        carpeta_padre = ctx.web.get_folder_by_server_relative_url(carpeta_base)
+        # Crear la subcarpeta si no existe
+        carpeta_padre = ctx.web.get_folder_by_server_relative_url(ruta_base)
         carpeta_padre.folders.add(subcarpeta).execute_query()
-        print(f"Carpeta '{subcarpeta}' creada exitosamente en '{carpeta_base}'.")
+        print(f"Carpeta '{subcarpeta}' creada exitosamente en '{ruta_base}'.")
 
 def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
+    """Sube un archivo a una carpeta específica en SharePoint."""
     try:
         usuario = os.getenv("USER_NAME")
         contrasena = os.getenv("PASSWORD")
@@ -39,22 +42,20 @@ def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
         # Obtener el mes actual
         mes_actual_ingles = datetime.now().strftime("%B")
         mes_actual_espanol = traducir_mes(mes_actual_ingles)
-        
 
-        # Construir la ruta completa del archivo
+        # Ruta del archivo local
         ruta_completa_archivo = os.path.join(os.path.dirname(__file__), "uploads", nombre_del_archivo)
         if not os.path.exists(ruta_completa_archivo):
             print(f"Error: El archivo '{ruta_completa_archivo}' no se encuentra.")
             return
 
-        crear_carpeta(ctx, f"{carpeta_base}/", mes_actual_espanol)
-        
-        carpeta_destino = f"{carpeta_base}/{mes_actual_espanol}"
+        # Crear la carpeta del mes si no existe
+        crear_carpeta(ctx, carpeta_base, mes_actual_espanol)
 
         # Subir el archivo
+        carpeta_destino = f"{carpeta_base}/{mes_actual_espanol}"
         with open(ruta_completa_archivo, 'rb') as contenido_archivo:
-            carpeta_destino_codificada = quote(carpeta_destino, safe='/')
-            carpeta_objetivo = ctx.web.get_folder_by_server_relative_url(carpeta_destino_codificada)
+            carpeta_objetivo = ctx.web.get_folder_by_server_relative_url(carpeta_destino)
             carpeta_objetivo.upload_file(os.path.basename(ruta_completa_archivo), contenido_archivo).execute_query()
 
         print(f"Archivo '{os.path.basename(ruta_completa_archivo)}' subido con éxito a '{carpeta_destino}'!")
@@ -63,7 +64,6 @@ def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
         print(f"Error al subir el archivo: {e}")
         import traceback
         traceback.print_exc()
-
 
 if __name__ == "__main__":
     import sys

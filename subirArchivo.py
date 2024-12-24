@@ -22,14 +22,19 @@ def crear_carpeta(ctx, ruta_base, subcarpeta):
     """Verifica o crea una subcarpeta en SharePoint."""
     ruta_completa = f"{ruta_base}/{subcarpeta}".strip('/')
     try:
-        # Verificar si la subcarpeta existe
+        # Verificar si la carpeta ya existe
         ctx.web.get_folder_by_server_relative_url(ruta_completa).execute_query()
         print(f"La carpeta '{ruta_completa}' ya existe.")
     except Exception:
-        # Crear la subcarpeta si no existe
-        carpeta_padre = ctx.web.get_folder_by_server_relative_url(ruta_base)
-        carpeta_padre.folders.add(subcarpeta).execute_query()
-        print(f"Carpeta '{subcarpeta}' creada exitosamente en '{ruta_base}'.")
+        try:
+            # Crear la carpeta si no existe
+            carpeta_padre = ctx.web.get_folder_by_server_relative_url(ruta_base)
+            nueva_carpeta = carpeta_padre.folders.add(subcarpeta)
+            ctx.execute_query()
+            print(f"Carpeta '{subcarpeta}' creada exitosamente en '{ruta_base}'.")
+        except Exception as e:
+            print(f"Error al crear la carpeta: {e}")
+            raise
 
 def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
     """Sube un archivo a una carpeta específica en SharePoint."""

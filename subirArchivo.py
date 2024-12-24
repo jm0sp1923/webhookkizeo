@@ -4,6 +4,7 @@ import os
 from office365.runtime.auth.user_credential import UserCredential
 from office365.sharepoint.client_context import ClientContext
 from dotenv import load_dotenv
+from urllib.parse import quote
 
 load_dotenv()
 
@@ -18,28 +19,6 @@ def traducir_mes(mes_en_ingles):
     return meses.get(mes_en_ingles, mes_en_ingles)
 
 
-def crear_carpeta(ctx, ruta_base, subcarpeta):
-    """Crea una subcarpeta en SharePoint si no existe."""
-    ruta_completa = f"{ruta_base}/{subcarpeta}".strip('/')
-    try:
-        # Verificar si la carpeta existe
-        ctx.web.get_folder_by_server_relative_url(ruta_completa).execute_query()
-        print(f"La carpeta '{ruta_completa}' ya existe.")
-    except Exception as e:
-        if "404 Client Error" in str(e):
-            print(f"La carpeta '{ruta_completa}' no existe. Creándola...")
-            try:
-                # Crear la carpeta
-                carpeta_padre = ctx.web.get_folder_by_server_relative_url(ruta_base)
-                nueva_carpeta = carpeta_padre.folders.add(subcarpeta)
-                ctx.execute_query()
-                print(f"Carpeta '{subcarpeta}' creada exitosamente en '{ruta_base}'.")
-            except Exception as crear_error:
-                print(f"Error al crear la carpeta: {crear_error}")
-                raise
-        else:
-            print(f"Error al verificar la carpeta: {e}")
-            raise
 
 
 def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
@@ -60,13 +39,13 @@ def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
             print(f"Error: El archivo '{ruta_completa_archivo}' no se encuentra.")
             return
 
-        # Crear la carpeta del mes si no existe
-        crear_carpeta(ctx, carpeta_base, mes_actual_espanol)
 
         # Subir el archivo
         carpeta_destino = f"{carpeta_base}/{mes_actual_espanol}"
         with open(ruta_completa_archivo, 'rb') as contenido_archivo:
-            carpeta_objetivo = ctx.web.get_folder_by_server_relative_url(carpeta_destino)
+            # Codificar la ruta de la carpeta destino
+            carpeta_destino_codificada = quote(carpeta_destino)
+            carpeta_objetivo = ctx.web.get_folder_by_server_relative_url(carpeta_destino_codificada)
             carpeta_objetivo.upload_file(os.path.basename(ruta_completa_archivo), contenido_archivo).execute_query()
 
         print(f"Archivo '{os.path.basename(ruta_completa_archivo)}' subido con éxito a '{carpeta_destino}'!")

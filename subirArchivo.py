@@ -19,22 +19,28 @@ def traducir_mes(mes_en_ingles):
 
 
 def crear_carpeta(ctx, ruta_base, subcarpeta):
-    """Verifica o crea una subcarpeta en SharePoint."""
+    """Crea una subcarpeta en SharePoint si no existe."""
     ruta_completa = f"{ruta_base}/{subcarpeta}".strip('/')
     try:
-        # Verificar si la carpeta ya existe
+        # Verificar si la carpeta existe
         ctx.web.get_folder_by_server_relative_url(ruta_completa).execute_query()
         print(f"La carpeta '{ruta_completa}' ya existe.")
-    except Exception:
-        try:
-            # Crear la carpeta si no existe
-            carpeta_padre = ctx.web.get_folder_by_server_relative_url(ruta_base)
-            nueva_carpeta = carpeta_padre.folders.add(subcarpeta)
-            ctx.execute_query()
-            print(f"Carpeta '{subcarpeta}' creada exitosamente en '{ruta_base}'.")
-        except Exception as e:
-            print(f"Error al crear la carpeta: {e}")
+    except Exception as e:
+        if "404 Client Error" in str(e):
+            print(f"La carpeta '{ruta_completa}' no existe. Creándola...")
+            try:
+                # Crear la carpeta
+                carpeta_padre = ctx.web.get_folder_by_server_relative_url(ruta_base)
+                nueva_carpeta = carpeta_padre.folders.add(subcarpeta)
+                ctx.execute_query()
+                print(f"Carpeta '{subcarpeta}' creada exitosamente en '{ruta_base}'.")
+            except Exception as crear_error:
+                print(f"Error al crear la carpeta: {crear_error}")
+                raise
+        else:
+            print(f"Error al verificar la carpeta: {e}")
             raise
+
 
 def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
     """Sube un archivo a una carpeta específica en SharePoint."""
@@ -69,6 +75,7 @@ def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
         print(f"Error al subir el archivo: {e}")
         import traceback
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     import sys

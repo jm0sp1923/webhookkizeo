@@ -1,10 +1,7 @@
-from office365.sharepoint.folders.folder import Folder
 from office365.sharepoint.client_context import ClientContext
-from office365.runtime.auth.authentication_context import AuthenticationContext
-import os
-from dotenv import load_dotenv
-load_dotenv()
-def crear_carpeta(parent_folder,new_name_folder,ctx):
+
+def crear_carpeta(parent_folder_url, new_folder_name, ctx):
+    """Crea una carpeta en SharePoint si no existe."""
     # Obtener la carpeta donde se creará la nueva carpeta
     parent_folder = ctx.web.get_folder_by_server_relative_url(parent_folder_url)
 
@@ -19,5 +16,3 @@ def crear_carpeta(parent_folder,new_name_folder,ctx):
         new_folder = parent_folder.folders.add(new_folder_name)
         ctx.execute_query()
         print(f"Carpeta '{new_folder_name}' creada con éxito.")
-    
-

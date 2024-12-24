@@ -4,8 +4,8 @@ import os
 from office365.runtime.auth.user_credential import UserCredential
 from office365.sharepoint.client_context import ClientContext
 from dotenv import load_dotenv
-from urllib.parse import quote
 from crearCarpeta import crear_carpeta
+
 load_dotenv()
 
 def traducir_mes(mes_en_ingles):
@@ -17,9 +17,6 @@ def traducir_mes(mes_en_ingles):
         "December": "Diciembre"
     }
     return meses.get(mes_en_ingles, mes_en_ingles)
-
-
-
 
 def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
     """Sube un archivo a una carpeta específica en SharePoint."""
@@ -39,8 +36,8 @@ def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
             print(f"Error: El archivo '{ruta_completa_archivo}' no se encuentra.")
             return
 
-        crear_carpeta(carpeta_base,mes_actual_espanol,ctx)
-
+        # Crear la carpeta en SharePoint
+        crear_carpeta(carpeta_base, mes_actual_espanol, ctx)
 
         # Subir el archivo
         carpeta_destino = f"{carpeta_base}/{mes_actual_espanol}"

@@ -1,4 +1,4 @@
-import express from 'express';
+
 import fetch from 'node-fetch';
 import { ejecutarSubidaSharePoint } from '../utils/pythonUtils.js';
 import { obtenExportId } from '../utils/kizeoUtils.js';
@@ -11,9 +11,10 @@ const site_url = process.env.SITE_URL;
 router.post('/webhook', async (req, res) => {
   const { id: dataId, data: { form_id: formId, fields } } = req.body;
 
+  JSON.stringify(req.body, null, 2);
+
   try {
     // Extraer la zona desde la propiedad correcta   
-    console.log('fields:', JSON.stringify(fields, null, 2));
     
     const zona = fields?.zonas?.result?.value?.code; // Accede a la propiedad 'zonas'
     const diligencia = fields?.acta_de_diligencia?.result?.value; // Accede a la propiedad 'diligencia'

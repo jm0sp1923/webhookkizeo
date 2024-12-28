@@ -28,6 +28,7 @@ router.post('/webhook', async (req, res) => {
       throw new Error('diligencia no encontrada en los datos recibidos.');
     }
     console.log('Diligencia extraída:', diligencia);
+    console.log('Form ID:', formId);
 
     // Determinar la carpeta de destino según la zona
     let destinationFolder;

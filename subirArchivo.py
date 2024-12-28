@@ -1,5 +1,6 @@
 from urllib.parse import quote
 from datetime import datetime
+from io import BytesIO
 import os
 from office365.runtime.auth.user_credential import UserCredential
 from office365.sharepoint.client_context import ClientContext
@@ -18,7 +19,7 @@ def traducir_mes(mes_en_ingles):
     }
     return meses.get(mes_en_ingles, mes_en_ingles)
 
-def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
+def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo, contenido_archivo):
     """Sube un archivo a una carpeta específica en SharePoint."""
     try:
         usuario = os.getenv("USER_NAME")
@@ -30,24 +31,19 @@ def subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_del_archivo):
         mes_actual_ingles = datetime.now().strftime("%B")
         mes_actual_espanol = traducir_mes(mes_actual_ingles)
 
-        # Ruta del archivo local
-        ruta_completa_archivo = os.path.join(os.path.dirname(__file__), "uploads", nombre_del_archivo)
-        if not os.path.exists(ruta_completa_archivo):
-            print(f"Error: El archivo '{ruta_completa_archivo}' no se encuentra.")
-            return
-
         # Crear la carpeta en SharePoint
         crear_carpeta(carpeta_base, mes_actual_espanol, ctx)
 
         # Subir el archivo
         carpeta_destino = f"{carpeta_base}/{mes_actual_espanol}"
-        with open(ruta_completa_archivo, 'rb') as contenido_archivo:
-            # Codificar la ruta de la carpeta destino
-            carpeta_destino_codificada = quote(carpeta_destino)
-            carpeta_objetivo = ctx.web.get_folder_by_server_relative_url(carpeta_destino_codificada)
-            carpeta_objetivo.upload_file(os.path.basename(ruta_completa_archivo), contenido_archivo).execute_query()
+        carpeta_destino_codificada = quote(carpeta_destino)
+        carpeta_objetivo = ctx.web.get_folder_by_server_relative_url(carpeta_destino_codificada)
 
-        print(f"Archivo '{os.path.basename(ruta_completa_archivo)}' subido con éxito a '{carpeta_destino}'")
+        # Usar el contenido del archivo proporcionado
+        file_stream = BytesIO(contenido_archivo)
+        carpeta_objetivo.upload_file(nombre_del_archivo, file_stream).execute_query()
+
+        print(f"Archivo '{nombre_del_archivo}' subido con éxito a '{carpeta_destino}'")
     
     except Exception as e:
         print(f"Error al subir el archivo: {e}")
@@ -61,7 +57,10 @@ if __name__ == "__main__":
         url_sitio = sys.argv[1]
         carpeta_base = sys.argv[2]
         nombre_archivo = sys.argv[3]
-    
-        subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_archivo)
+
+        # Leer el contenido del archivo desde stdin
+        contenido_archivo = sys.stdin.buffer.read()
+
+        subir_archivo_a_sharepoint(url_sitio, carpeta_base, nombre_archivo, contenido_archivo)
     else:
         print("No se proporcionaron los argumentos necesarios.")

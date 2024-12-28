@@ -11,7 +11,7 @@ const site_url = process.env.SITE_URL;
 router.post('/webhook', async (req, res) => {
   const { id: dataId, data: { form_id: formId, fields } } = req.body;
 
-  JSON.stringify(req.body, null, 2);
+  console.log(JSON.stringify(req.body, null, 2));
 
   try {
     // Extraer la zona desde la propiedad correcta   

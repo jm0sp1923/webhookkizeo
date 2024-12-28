@@ -40,7 +40,6 @@ router.post('/webhook', async (req, res) => {
       throw new Error(`Zona desconocida: ${zona}. No se puede determinar la carpeta de destino.`);
     }
 
-    destinationFolder = destinationFolder + '/' + diligencia;
 
     // Obtener exportId
     const exportId = await obtenExportId(formId, process.env.KIZEO_API_KEY);
@@ -58,7 +57,7 @@ router.post('/webhook', async (req, res) => {
     const buffer = Buffer.from(await response.arrayBuffer());
 
     // Subir a SharePoint directamente desde el buffer
-    await ejecutarSubidaSharePoint(site_url, destinationFolder, fileName, buffer);
+    ejecutarSubidaSharePoint(site_url, destinationFolder,diligencia, fileName, buffer);
 
     res.status(200).json({ message: 'Archivo PDF procesado y subido exitosamente', fileName });
   } catch (error) {

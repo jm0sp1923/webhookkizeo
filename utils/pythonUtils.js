@@ -1,15 +1,17 @@
 import { spawn } from "child_process";
 
-function ejecutarSubidaSharePoint(siteUrl, destinationFolder, fileName, fileBuffer) {
+function ejecutarSubidaSharePoint(siteUrl, destinationFolder,tipoDiligencia, fileName, fileBuffer) {
   console.log("Iniciando ejecución del script Python...");
   console.log("Site URL:", siteUrl);
   console.log("Destination Folder:", destinationFolder);
+  console.log("Tipo de diligencia:", tipoDiligencia);
   console.log("File Name:", fileName);
 
   const pythonProcess = spawn("python", [
     "subirArchivo.py",
     siteUrl,
     destinationFolder,
+    tipoDiligencia,
     fileName,
   ]);
 

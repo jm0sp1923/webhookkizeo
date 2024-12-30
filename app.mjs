@@ -24,6 +24,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(webhookRoutes);
 app.use(indexRoutes);
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`Servidor escuchando en http://0.0.0.0:${PORT}`);
 });

@@ -1,6 +1,9 @@
 # Etapa 1: Imagen base de Python para instalar dependencias
 FROM python:3.9-slim AS python-deps
 
+RUN python3 --version
+
+
 # Establece el directorio de trabajo
 WORKDIR /app
 

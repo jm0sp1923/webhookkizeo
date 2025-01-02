@@ -3,7 +3,9 @@ FROM node:18
 
 # Instala las dependencias de Python y virtualenv (si realmente necesitas Python)
 RUN apt-get update && apt-get install -y python3 python3-pip python3-venv && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    apt-get clean && rm -rf /var/lib/apt/lists/* && python3 -m venv /venv && \
+    /venv/bin/pip install --upgrade pip && \
+    /venv/bin/pip install -r requirements.txt
 
 # Crea un directorio de trabajo
 WORKDIR /usr/src/app
@@ -11,11 +13,6 @@ WORKDIR /usr/src/app
 # Copia los archivos del proyecto al contenedor
 COPY . .
 
-# Crea un entorno virtual de Python y activa el entorno
-# Esto solo es necesario si tienes dependencias en Python.
-RUN python3 -m venv /venv && \
-    /venv/bin/pip install --upgrade pip && \
-    /venv/bin/pip install -r requirements.txt
 
 # Instala las dependencias de Node.js
 RUN npm install

@@ -1,8 +1,9 @@
 # Usa una imagen base de Node.js
 FROM node:18
 
-# Instala las dependencias de Python y virtualenv
-RUN apt-get update && apt-get install -y python3 python3-pip python3-venv
+# Instala las dependencias de Python y virtualenv (si realmente necesitas Python)
+RUN apt-get update && apt-get install -y python3 python3-pip python3-venv && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Crea un directorio de trabajo
 WORKDIR /usr/src/app
@@ -11,6 +12,7 @@ WORKDIR /usr/src/app
 COPY . .
 
 # Crea un entorno virtual de Python y activa el entorno
+# Esto solo es necesario si tienes dependencias en Python.
 RUN python3 -m venv /venv && \
     /venv/bin/pip install --upgrade pip && \
     /venv/bin/pip install -r requirements.txt
@@ -18,9 +20,11 @@ RUN python3 -m venv /venv && \
 # Instala las dependencias de Node.js
 RUN npm install
 
-# Instala pm2 para gestionar el proceso de Node.js
-RUN npm install -g pm2
+# Expone el puerto que la aplicación usa (Render espera el uso de la variable PORT)
+EXPOSE 8000
 
+# Usa una variable de entorno para asegurarte de que se use el puerto dinámico en Render
+ENV PORT=8000
 
-# Comando para iniciar el servidor Express
-CMD ["pm2", "start", "app.mjs", "--watch"]
+# Define el comando de inicio de la aplicación
+CMD ["npm", "start"]

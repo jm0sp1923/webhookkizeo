@@ -7,7 +7,7 @@ function ejecutarSubidaSharePoint(siteUrl, destinationFolder,tipoDiligencia, fil
   console.log("Tipo de diligencia:", tipoDiligencia);
   console.log("File Name:", fileName);
 
-  const pythonProcess = spawn("python", [
+  const pythonProcess = spawn("python3", [
     "subirArchivo.py",
     siteUrl,
     destinationFolder,

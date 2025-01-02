@@ -3,7 +3,6 @@ FROM python:3.9-slim AS python-deps
 
 RUN python3 --version
 
-
 # Establece el directorio de trabajo
 WORKDIR /app
 
@@ -14,11 +13,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Etapa 2: Imagen base de Node.js para el servidor Express
 FROM node:18-slim
 
+# Instalar Python en la imagen de Node.js (por si no está)
+RUN apt-get update && apt-get install -y python3 python3-pip
+
 # Establece el directorio de trabajo
 WORKDIR /app
 
 # Copia los archivos necesarios para el servidor Express
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json ./ 
 RUN npm install
 
 # Copia el código del proyecto

@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y python3 python3-pip python3-venv && \
     /venv/bin/pip install --upgrade pip
 
 
-RUN pip install Office365-REST-Python-Client
+RUN pip install --break-system-packages Office365-REST-Python-Client
+
 
 # Crea un directorio de trabajo
 WORKDIR /usr/src/app

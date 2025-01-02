@@ -1,8 +1,7 @@
 import express from 'express';
-import path from 'path';
+
 
 const router = express.Router();
-const uploadsDir = path.join(process.cwd(), 'uploads');
 
 router.get('/', async (req, res) => {
   try {

@@ -15,7 +15,6 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -24,6 +23,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(webhookRoutes);
 app.use(indexRoutes);
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Servidor escuchando en http://localhost:${port}`);
+const port = process.env.PORT || 8000;
+app.listen(port, () => {
+  console.log(`Servidor escuchando en http://0.0.0.0:${port}`);
 });

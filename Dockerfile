@@ -1,35 +1,31 @@
-# Usa una imagen base de Node.js
-FROM node:18
+# Etapa 1: Imagen base de Python para instalar dependencias
+FROM python:3.9-slim AS python-deps
 
-# Instala las dependencias de Python y virtualenv (si realmente necesitas Python)
-RUN apt-get update && apt-get install -y python3 python3-pip python3-venv && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* && python3 -m venv /venv && \
-    /venv/bin/pip install --upgrade pip
+# Establece el directorio de trabajo
+WORKDIR /app
 
+# Copia y instala las dependencias de Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install --break-system-packages Office365-REST-Python-Client
+# Etapa 2: Imagen base de Node.js para el servidor Express
+FROM node:18-slim
 
+# Establece el directorio de trabajo
+WORKDIR /app
 
-# Crea un directorio de trabajo
-WORKDIR /usr/src/app
-
-# Copia los archivos del proyecto al contenedor
-COPY . .
-
-# Verificar que 'requirements.txt' esté presente en el contenedor
-RUN ls -l /usr/src/app
-
-# Instalar las dependencias de Python
-RUN /venv/bin/pip install -r requirements.txt
-
-# Instala las dependencias de Node.js
+# Copia los archivos necesarios para el servidor Express
+COPY package.json package-lock.json ./
 RUN npm install
 
-# Expone el puerto que la aplicación usa (Render espera el uso de la variable PORT)
-EXPOSE 8000
+# Copia el código del proyecto
+COPY . .
 
-# Usa una variable de entorno para asegurarte de que se use el puerto dinámico en Render
-ENV PORT=8000
+# Copia las dependencias de Python desde la etapa anterior
+COPY --from=python-deps /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
 
-# Define el comando de inicio de la aplicación
+# Expone el puerto del servidor
+EXPOSE 3000
+
+# Comando para ejecutar el servidor Express
 CMD ["npm", "start"]

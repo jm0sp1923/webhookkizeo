@@ -23,7 +23,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(webhookRoutes);
 app.use(indexRoutes);
 
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://0.0.0.0:${port}`);
 });

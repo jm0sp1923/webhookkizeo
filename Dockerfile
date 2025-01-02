@@ -1,36 +1,33 @@
-# Etapa 1: Imagen base de Python para instalar dependencias
-FROM python:3.9-slim AS python-deps
-
-RUN python3 --version
-
-# Establece el directorio de trabajo
-WORKDIR /app
-
-# Copia y instala las dependencias de Python
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Etapa 2: Imagen base de Node.js para el servidor Express
+# Usar una imagen base con Node.js (para Express) y Python (para ejecutar archivos .py)
 FROM node:18-slim
 
-# Instalar Python en la imagen de Node.js (por si no está)
-RUN apt-get update && apt-get install -y python3 python3-pip
+# Actualizar y agregar dependencias necesarias (Python, pip y venv)
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    && rm -rf /var/lib/apt/lists/*
 
-# Establece el directorio de trabajo
+# Establecer el directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copia los archivos necesarios para el servidor Express
-COPY package.json package-lock.json ./ 
-RUN npm install
-
-# Copia el código del proyecto
+# Copiar los archivos del proyecto al contenedor
 COPY . .
 
-# Copia las dependencias de Python desde la etapa anterior
-COPY --from=python-deps /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
+# Instalar las dependencias de Node.js
+RUN npm install
 
-# Expone el puerto del servidor
+# Crear un entorno virtual para Python
+RUN python3 -m venv /app/venv
+
+# Instalar las dependencias de Python
+RUN /app/venv/bin/pip install --no-cache-dir -r /app/requirements.txt
+
+# Configurar el PATH para que el contenedor use el entorno virtual de Python
+ENV PATH="/app/venv/bin:$PATH"
+
+# Exponer el puerto en el que el servidor Express escuchará
 EXPOSE 3000
 
-# Comando para ejecutar el servidor Express
+# Comando por defecto para ejecutar tu servidor Express
 CMD ["npm", "start"]

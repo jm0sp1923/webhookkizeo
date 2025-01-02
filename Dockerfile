@@ -1,4 +1,4 @@
-# Usa una imagen base
+# Usa una imagen base de Node.js
 FROM node:18
 
 # Instala las dependencias de Python y virtualenv
@@ -10,18 +10,17 @@ WORKDIR /usr/src/app
 # Copia los archivos del proyecto al contenedor
 COPY . .
 
-# Crea un entorno virtual
-RUN python3 -m venv /venv
+# Crea un entorno virtual de Python y activa el entorno
+RUN python3 -m venv /venv && \
+    /venv/bin/pip install --upgrade pip && \
+    /venv/bin/pip install -r requirements.txt
 
-# Activa el entorno virtual y instala las dependencias de Python
-RUN /venv/bin/pip install -r requirements.txt
-
-# Instala dependencias de node
+# Instala las dependencias de Node.js
 RUN npm install
 
-# Expón los puertos necesarios
-EXPOSE 3000
-EXPOSE 8000
+# Instala pm2 para gestionar el proceso de Node.js
+RUN npm install -g pm2
 
-# Comando para iniciar tu aplicación
-CMD ["npm", "start"]
+
+# Comando para iniciar el servidor Express
+CMD ["pm2", "start", "app.mjs", "--watch"]

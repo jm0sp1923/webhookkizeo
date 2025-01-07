@@ -3,102 +3,99 @@ import axios from 'axios';
 import multer from 'multer';
 import XLSX from 'xlsx';
 import clearText from '../utils/limpiarTexto.js';
-const upload = multer({ dest: 'uploads/' }); 
+
+const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
 
 const api_key = process.env.KIZEO_API_KEY;
 
+// Función auxiliar para hacer la solicitud a la API
+const updateKizeoList = async (listType, data) => {
+  const kizeoUrl = `https://www.kizeoforms.com/rest/v3/lists/${listType}`;
+  try {
+    await axios.put(kizeoUrl, { items: data }, {
+      headers: {
+        Authorization: api_key,
+      },
+    });
+    return { success: true };
+  } catch (error) {
+    console.error(`Error al actualizar la lista ${listType}:`, error);
+    return { success: false, message: `Error al actualizar la lista ${listType}` };
+  }
+};
+
 // Ruta para renderizar la vista de actualización
 router.get('/updateListsView', async (req, res) => {
   try {
-    res.render('updatelist'); // Renderizar la vista de actualización
+    res.render('updatelist');
   } catch (error) {
-    console.error('Error al leer la carpeta uploads:', error);
+    console.error('Error al cargar la página de actualización:', error);
     res.status(500).send('Error al cargar la página');
   }
 });
 
 // Ruta para actualizar listas
 router.post('/updatelist', upload.single('excelFile'), async (req, res) => {
-  try {
-    const { listType, uploadOption, jsonData } = req.body;
+  const { listType, uploadOption, jsonData } = req.body;
 
-    if (uploadOption === 'file' && req.file) {
-      // Procesar archivo Excel
-      const file = req.file;
-      console.log('Archivo Excel recibido:', file);
-
-      if (!file.mimetype.includes('spreadsheet')) {
-        return res.status(400).json({ success: false, message: 'El archivo debe ser un archivo Excel válido' });
-      }
-
-      // Leer archivo Excel
-      const workbook = XLSX.readFile(file.path);
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-
-      // Convertir celdas a JSON
-      const jsonDataFromExcel = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-      // Eliminar la primera fila (cabecera) y limpiar solo la columna 9
-      const dataWithoutHeader = jsonDataFromExcel.slice(1);
-
-      const formattedData = dataWithoutHeader.map(row => 
-        row.map((cell, index) => {
-          // Limpiar solo la columna 9 (índice 8 porque es 0-based)
-          if (index === 8) {
-            return clearText(cell || '');
-          }
-          // Mantener otras columnas sin cambios
-          return cell || '';
-        }).join('|')
-      );
-
-      const jsonBody = { items: formattedData };
-      console.log('Datos procesados del Excel:', jsonBody);
-
-      const kizeoUrl = `https://www.kizeoforms.com/rest/v3/lists/${listType}`;
-
-      try {
-        await axios.put(kizeoUrl, jsonBody, {
-          headers: {
-            Authorization: api_key,
-          },
-        });
-
-        return res.json({ success: true, message: 'Lista actualizada correctamente desde Excel' });
-
-      } catch (error) {
-        console.error('Error al actualizar la lista con Excel:', error);
-        return res.status(500).json({ success: false, message: 'Error al actualizar la lista con Excel' });
-      }
-    } else if (uploadOption === 'json' && jsonData) {
-      // Procesar JSON directamente
-      const jsonBody = { items: JSON.parse(jsonData) };
-      console.log('Datos recibidos como JSON:', jsonBody);
-
-      const kizeoUrl = `https://www.kizeoforms.com/rest/v3/lists/${listType}`;
-
-      try {
-        await axios.put(kizeoUrl, jsonBody, {
-          headers: {
-            Authorization: api_key,
-          },
-        });
-
-        return res.json({ success: true, message: 'Lista actualizada correctamente desde JSON' });
-
-      } catch (error) {
-        console.error('Error al actualizar la lista con JSON:', error);
-        return res.status(500).json({ success: false, message: 'Error al actualizar la lista con JSON' });
-      }
-    } else {
-      return res.status(400).json({ success: false, message: 'Datos no válidos o faltantes' });
-    }
-  } catch (error) {
-    console.error('Error general al actualizar la lista:', error);
-    return res.status(500).json({ success: false, message: 'Error general al actualizar la lista' });
+  if (uploadOption === 'file') {
+    return handleFileUpload(req, res, listType);
+  } else if (uploadOption === 'json' && jsonData) {
+    return handleJsonUpload(req, res, listType, jsonData);
+  } else {
+    return res.status(400).json({ success: false, message: 'Datos no válidos o faltantes' });
   }
 });
+
+// Manejo de la subida de archivo Excel
+const handleFileUpload = async (req, res, listType) => {
+  const file = req.file;
+  
+  if (!file.mimetype.includes('spreadsheet')) {
+    return res.status(400).json({ success: false, message: 'El archivo debe ser un archivo Excel válido' });
+  }
+
+  try {
+    const formattedData = await processExcelFile(file);
+    const result = await updateKizeoList(listType, formattedData);
+    return handleResult(res, result, 'Excel');
+  } catch (error) {
+    console.error('Error al procesar el archivo Excel:', error);
+    return res.status(500).json({ success: false, message: 'Error al procesar el archivo Excel' });
+  }
+};
+
+// Manejo de la subida de datos JSON
+const handleJsonUpload = async (req, res, listType, jsonData) => {
+  try {
+    const parsedData = JSON.parse(jsonData);
+    const result = await updateKizeoList(listType, parsedData);
+    return handleResult(res, result, 'JSON');
+  } catch (error) {
+    console.error('Error al procesar los datos JSON:', error);
+    return res.status(500).json({ success: false, message: 'Error al procesar los datos JSON' });
+  }
+};
+
+// Procesar archivo Excel
+const processExcelFile = (file) => {
+  const workbook = XLSX.readFile(file.path);
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const jsonDataFromExcel = XLSX.utils.sheet_to_json(sheet, { header: 1 }).slice(1); // Excluir cabecera
+
+  return jsonDataFromExcel.map(row =>
+    row.map((cell, index) => index === 8 ? clearText(cell || '') : cell || '').join('|')
+  );
+};
+
+// Manejar el resultado de la actualización
+const handleResult = (res, result, source) => {
+  if (result.success) {
+    return res.json({ success: true, message: `Lista actualizada correctamente desde ${source}` });
+  } else {
+    return res.status(500).json(result);
+  }
+};
 
 export default router;

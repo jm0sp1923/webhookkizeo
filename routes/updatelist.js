@@ -2,7 +2,7 @@ import express from 'express';
 import axios from 'axios';
 import multer from 'multer';
 import XLSX from 'xlsx';
-import clearText from '../utils/clearText.js';
+import clearText from '../utils/limpiarTexto.js';
 const upload = multer({ dest: 'uploads/' }); // Manejar subida de archivos
 const router = express.Router();
 

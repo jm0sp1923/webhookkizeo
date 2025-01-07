@@ -21,8 +21,8 @@ fetch(apiUrl, {
         const listTypeSelect = document.getElementById('listType');
         data.lists.forEach(list => {
             const option = document.createElement('option');
-            option.value = list.id; // El ID de la lista
-            option.textContent = list.name; // El nombre de la lista
+            option.value = list.id; 
+            option.textContent = list.name;
             listTypeSelect.appendChild(option);
         });
     })

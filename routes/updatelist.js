@@ -1,6 +1,7 @@
 import express from 'express'; // Cambia a import
 import axios from 'axios'; // Cambia a import
 import multer from 'multer'; // Cambia a import
+import XLSX from 'xlsx'; // Importar XLSX para leer archivos Excel
 
 const upload = multer({ dest: 'uploads/' }); // Si estás usando Multer para manejar la subida de archivos
 const router = express.Router();
@@ -19,66 +20,71 @@ router.get('/updateListsView', async (req, res) => {
 
 router.post('/updatelist', upload.single('excelFile'), async (req, res) => {
   try {
-    console.log('Datos recibidos:', req.body); // Verifica los datos enviados
-    const { listType,uploadOption, jsonData } = req.body;
+    console.log('Datos recibidos:', req.body);
+    const { listType, uploadOption, jsonData } = req.body;
 
     if (uploadOption === 'json') {
       try {
-        // Limpiar el JSON de saltos de línea y espacios innecesarios
         const cleanedJsonData = jsonData.replace(/[\r\n]+/g, '').replace(/\s+/g, ' ').trim();
-
-        // Intentar parsear el JSON limpio
-        const jsonBody = JSON.parse(cleanedJsonData); // Intentar parsear el JSON
+        const jsonBody = JSON.parse(cleanedJsonData);
         console.log('JSON recibido:', jsonBody);
 
         const kizeoUrl = `https://www.kizeoforms.com/rest/v3/lists/${listType}`;
 
-        // Hacer la solicitud POST a KizeoForms
         await axios.put(kizeoUrl, jsonBody, {
           headers: {
             Authorization: api_key
           },
         });
 
-        // Responder con el resultado
-        res.status(200).send('Lista actualizada correctamente');
+        // Responder con un objeto JSON
+        return res.json({ success: true, message: 'Lista actualizada correctamente' });
+
       } catch (error) {
-        console.error('Error al parsear el JSON:', error);
-        res.status(400).send('JSON inválido');
+        console.error('Error al actualizar la lista:', error);
+        return res.status(500).json({ success: false, message: 'Error al actualizar la lista' });
       }
     } else if (uploadOption === 'file' && req.file) {
-      // Procesar el archivo Excel aquí (puedes usar bibliotecas como 'xlsx' o 'exceljs' para leer el archivo)
-      const file = req.file; // El archivo estará en req.file
+      const file = req.file;
       console.log('Archivo Excel recibido:', file);
+      
+      const workbook = XLSX.readFile(file.path);
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
 
-      // Aquí puedes hacer algo con el archivo, como procesarlo y convertirlo en el formato esperado
-      // Ejemplo de cuerpo de solicitud para Kizeo (esto depende de cómo proceses el archivo)
+      const jsonDataFromExcel = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+      const dataWithoutHeader = jsonDataFromExcel.slice(1);
+      const formattedData = dataWithoutHeader.map(row => row.join('|'));
+
       const jsonBody = {
-        items: [
-          'Zona 1|elena.mendez@affi.net',
-          'Zona 2|angelica.ramirez@affi.net',
-          'Zona prueba|prueba@gmail.com',
-        ],
+        items: formattedData,
       };
 
-      const kizeoUrl = `https://www.kizeoforms.com/rest/v3/lists/${formId}`;
+      console.log('Datos procesados del Excel:', jsonBody);
 
-      // Hacer la solicitud POST a KizeoForms
-      await axios.post(kizeoUrl, jsonBody, {
-        headers: {
-          Authorization: api_key // Asegúrate de usar la variable correcta
-        },
-      });
+      const kizeoUrl = `https://www.kizeoforms.com/rest/v3/lists/${listType}`;
 
-      // Responder con el resultado
-      res.status(200).send('Lista actualizada correctamente');
+      try {
+        await axios.put(kizeoUrl, jsonBody, {
+          headers: {
+            Authorization: api_key
+          },
+        });
+
+        return res.json({ success: true, message: 'Lista actualizada correctamente' });
+
+      } catch (error) {
+        console.error('Error al actualizar la lista:', error);
+        return res.status(500).json({ success: false, message: 'Error al actualizar la lista' });
+      }
     } else {
-      res.status(400).send('Datos no válidos');
+      return res.status(400).json({ success: false, message: 'Datos no válidos' });
     }
   } catch (error) {
     console.error('Error al actualizar la lista:', error);
-    res.status(500).send('Error al actualizar la lista');
+    return res.status(500).json({ success: false, message: 'Error al actualizar la lista' });
   }
 });
+
 
 export default router;

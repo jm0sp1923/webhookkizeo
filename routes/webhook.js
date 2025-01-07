@@ -40,9 +40,8 @@ router.post('/webhook', async (req, res) => {
       throw new Error(`Zona desconocida: ${zona}. No se puede determinar la carpeta de destino.`);
     }
 
-
-    // Obtener exportId
     const exportId = await obtenExportId(formId, process.env.KIZEO_API_KEY);
+
     console.log('Export ID obtenido:', exportId);
 
     // Descargar el PDF

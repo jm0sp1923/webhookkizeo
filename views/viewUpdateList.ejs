@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Subir Archivo Excel</title>
+    <link rel="icon" href="../public/img/logo.png" type="image/x-icon" />
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SweetAlert -->
+    <style>
+      /* Ocultar el textarea y el input de archivo por defecto */
+      #jsonDataContainer,
+      #excelFileContainer {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1 class="text-center mb-4">Actualizar listas</h1>
+      <form
+        id="uploadForm"
+        action="/updatelist"
+        method="post"
+        enctype="multipart/form-data"
+        class="bg-light p-4 rounded shadow"
+      >
+        <div class="mb-3">
+          <label for="listType" class="form-label"
+            >Seleccione el tipo de lista a actualizar:</label
+          >
+          <select id="listType" name="listType" class="form-select">
+            <option value="" disabled selected>Seleccione una opción</option>
+          </select>
+        </div>
+
+        <!-- Radio buttons para seleccionar el tipo de carga -->
+        <div class="mb-3">
+          <label class="form-label" for="filetype">Seleccione el tipo de carga:</label><br />
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="uploadOption"
+              id="uploadFile"
+              value="file"
+              onclick="toggleFields()"
+              checked
+              onkeydown="handleKeyDown(event)"
+            />
+            <label class="form-check-label" for="uploadFile">Subir archivo Excel</label>
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="uploadOption"
+              id="uploadJson"
+              value="json"
+              onclick="toggleFields()"
+              onkeydown="handleKeyDown(event)"
+            />
+            <label class="form-check-label" for="uploadJson">Escribir formato JSON</label>
+          </div>
+        </div>
+
+        <!-- Input para subir archivo Excel -->
+        <div id="excelFileContainer" class="mb-3">
+          <label for="excelFile" class="form-label">Seleccione un archivo Excel:</label>
+          <input
+            type="file"
+            id="excelFile"
+            name="excelFile"
+            accept=".xlsx, .xls"
+            class="form-control"
+            onchange="toggleDeleteButton()"
+          />
+          <!-- Botón para eliminar el archivo seleccionado -->
+          <button
+            type="button"
+            id="deleteFileButton"
+            class="btn btn-danger mt-2"
+            style="display: none;"
+            onclick="clearFile()"
+          >
+            Eliminar archivo
+          </button>
+        </div>
+
+        <!-- Textarea para escribir datos en formato JSON -->
+        <div id="jsonDataContainer" class="mb-3">
+          <label for="jsonData" class="form-label">Escribir formato JSON:</label>
+          <textarea
+            id="jsonData"
+            name="jsonData"
+            class="form-control"
+            rows="5"
+            placeholder='{
+  "items": [
+
+  ]
+}'
+          ></textarea>
+        </div>
+
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary">Subir</button>
+        </div>
+      </form>
+    </div>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../utils/getListApiKizeo.js"></script>
+
+    
+    <script>
+      function toggleFields() {
+        const uploadOption = document.querySelector(
+          'input[name="uploadOption"]:checked'
+        ).value;
+
+        if (uploadOption === "file") {
+          document.getElementById("excelFileContainer").style.display = "block";
+          document.getElementById("jsonDataContainer").style.display = "none";
+        } else if (uploadOption === "json") {
+          document.getElementById("excelFileContainer").style.display = "none";
+          document.getElementById("jsonDataContainer").style.display = "block";
+        }
+      }
+
+      window.onload = toggleFields;
+
+      // Función para mostrar el botón de eliminar archivo si se seleccionó un archivo
+      function toggleDeleteButton() {
+        const fileInput = document.getElementById("excelFile");
+        const deleteButton = document.getElementById("deleteFileButton");
+        deleteButton.style.display = fileInput.files.length ? "block" : "none";
+      }
+
+      // Función para borrar el archivo seleccionado
+      function clearFile() {
+        const fileInput = document.getElementById("excelFile");
+        const deleteButton = document.getElementById("deleteFileButton");
+        fileInput.value = ""; 
+        deleteButton.style.display = "none"; 
+      }
+
+      // Handle form submission
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault(); 
+
+         
+          Swal.fire({
+            title: "Subiendo...",
+            text: "Por favor espera mientras subimos el archivo...",
+            icon: "info",
+            showConfirmButton: false,
+          });
+
+         
+          const formData = new FormData(this);
+
+          
+          fetch("/updatelist", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.success) {
+                Swal.fire({
+                  title: "¡Éxito!",
+                  text: data.message, 
+                  icon: "success",
+                  confirmButtonText: "Aceptar",
+                });
+              } else {
+                Swal.fire({
+                  title: "Error",
+                  text: data.message, 
+                  icon: "error",
+                  confirmButtonText: "Aceptar",
+                });
+              }
+            })
+            .catch((error) => {
+              // Handle error in the request
+              Swal.fire({
+                title: "Error",
+                text: "Hubo un problema de conexión.",
+                icon: "error",
+                confirmButtonText: "Aceptar",
+              });
+            });
+        });
+    </script>
+  </body>
+</html>

@@ -25,6 +25,14 @@ app.use(webhookRoutes);
 app.use(indexRoutes);
 app.use(updatelistRoutes);
 
+app.use((req, res, next) => {
+  res.setTimeout(60000, () => { // 60 segundos
+    console.log('Request timed out');
+    res.status(408).send('Request Timeout');
+  });
+  next();
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://0.0.0.0:${port}`);

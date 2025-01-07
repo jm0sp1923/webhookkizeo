@@ -3,7 +3,7 @@ import axios from 'axios';
 import multer from 'multer';
 import XLSX from 'xlsx';
 import clearText from '../utils/limpiarTexto.js';
-const upload = multer({ dest: 'uploads/' }); // Manejar subida de archivos
+const upload = multer({ dest: 'uploads/' }); 
 const router = express.Router();
 
 const api_key = process.env.KIZEO_API_KEY;

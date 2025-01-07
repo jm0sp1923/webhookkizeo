@@ -1,4 +1,4 @@
-const cleanText = (text) => {
+function cleanText(text) {
     if (text) {
       return text
         .toString()
@@ -10,4 +10,4 @@ const cleanText = (text) => {
     return text;
   };
 
-  return cleanText;
+export default cleanText;

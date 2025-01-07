@@ -2,26 +2,13 @@ import express from 'express';
 import axios from 'axios';
 import multer from 'multer';
 import XLSX from 'xlsx';
-
-const upload = multer({ dest: 'uploads/' }); // Si estás usando Multer para manejar la subida de archivos
+import clearText from '../utils/clearText.js';
+const upload = multer({ dest: 'uploads/' }); // Manejar subida de archivos
 const router = express.Router();
 
 const api_key = process.env.KIZEO_API_KEY;
 
-// Función para limpiar texto: reemplazar saltos de línea, eliminar espacios adicionales y limpiar caracteres extraños
-const cleanText = (text) => {
-  if (text) {
-    return text
-      .toString()
-      .replace(/[\r\n]+/g, ' ')  // Reemplazar saltos de línea por un solo espacio
-      .replace(/\s+/g, ' ')      // Reemplazar espacios múltiples por un solo espacio
-      .replace(/[^a-zA-Z0-9\s]/g, '') // Eliminar caracteres no alfanuméricos (opcional)
-      .trim();                  // Eliminar espacios al principio y al final
-  }
-  return text;
-};
-
-// Ruta para cargar la vista de actualización
+// Ruta para renderizar la vista de actualización
 router.get('/updateListsView', async (req, res) => {
   try {
     res.render('updatelist'); // Renderizar la vista de actualización
@@ -31,63 +18,40 @@ router.get('/updateListsView', async (req, res) => {
   }
 });
 
-// Ruta para actualizar las listas
+// Ruta para actualizar listas
 router.post('/updatelist', upload.single('excelFile'), async (req, res) => {
   try {
-    console.log('Datos recibidos:', req.body);
     const { listType, uploadOption, jsonData } = req.body;
 
-    // Caso cuando se sube un JSON
-    if (uploadOption === 'json') {
-      try {
-        // Limpiar datos JSON
-        const cleanedJsonData = cleanText(jsonData); // Usar la función cleanText para limpiar el JSON
-        const jsonBody = JSON.parse(cleanedJsonData);
-        console.log('JSON recibido:', jsonBody);
-
-        const kizeoUrl = `https://www.kizeoforms.com/rest/v3/lists/${listType}`;
-
-        // Realizar la solicitud PUT a la API de Kizeo
-        await axios.put(kizeoUrl, jsonBody, {
-          headers: {
-            Authorization: api_key,
-          },
-        });
-
-        return res.json({ success: true, message: 'Lista actualizada correctamente' });
-
-      } catch (error) {
-        console.error('Error al actualizar la lista con JSON:', error);
-        return res.status(500).json({ success: false, message: 'Error al actualizar la lista con JSON' });
-      }
-    }
-    
-    // Caso cuando se sube un archivo Excel
-    else if (uploadOption === 'file' && req.file) {
+    if (uploadOption === 'file' && req.file) {
+      // Procesar archivo Excel
       const file = req.file;
       console.log('Archivo Excel recibido:', file);
 
-      // Verificar si el archivo es Excel
       if (!file.mimetype.includes('spreadsheet')) {
         return res.status(400).json({ success: false, message: 'El archivo debe ser un archivo Excel válido' });
       }
 
-      // Leer el archivo Excel
+      // Leer archivo Excel
       const workbook = XLSX.readFile(file.path);
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
 
-      // Convertir las celdas a JSON
-      const jsonDataFromExcel = XLSX.utils.sheet_to_json(sheet, { header:  1});
+      // Convertir celdas a JSON
+      const jsonDataFromExcel = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-      // Eliminar la primera fila (cabecera) y limpiar los datos
+      // Eliminar la primera fila (cabecera) y limpiar solo la columna 9
       const dataWithoutHeader = jsonDataFromExcel.slice(1);
 
-      // Limpiar cada celda de la fila
       const formattedData = dataWithoutHeader.map(row => 
-        row.map(cell => 
-          cleanText(cell)  // Limpiar cada celda
-        ).join('|')
+        row.map((cell, index) => {
+          // Limpiar solo la columna 9 (índice 8 porque es 0-based)
+          if (index === 8) {
+            return clearText(cell || '');
+          }
+          // Mantener otras columnas sin cambios
+          return cell || '';
+        }).join('|')
       );
 
       const jsonBody = { items: formattedData };
@@ -96,7 +60,6 @@ router.post('/updatelist', upload.single('excelFile'), async (req, res) => {
       const kizeoUrl = `https://www.kizeoforms.com/rest/v3/lists/${listType}`;
 
       try {
-        // Realizar la solicitud PUT a la API de Kizeo
         await axios.put(kizeoUrl, jsonBody, {
           headers: {
             Authorization: api_key,
@@ -109,9 +72,28 @@ router.post('/updatelist', upload.single('excelFile'), async (req, res) => {
         console.error('Error al actualizar la lista con Excel:', error);
         return res.status(500).json({ success: false, message: 'Error al actualizar la lista con Excel' });
       }
-    } 
-    else {
-      return res.status(400).json({ success: false, message: 'Datos no válidos' });
+    } else if (uploadOption === 'json' && jsonData) {
+      // Procesar JSON directamente
+      const jsonBody = { items: JSON.parse(jsonData) };
+      console.log('Datos recibidos como JSON:', jsonBody);
+
+      const kizeoUrl = `https://www.kizeoforms.com/rest/v3/lists/${listType}`;
+
+      try {
+        await axios.put(kizeoUrl, jsonBody, {
+          headers: {
+            Authorization: api_key,
+          },
+        });
+
+        return res.json({ success: true, message: 'Lista actualizada correctamente desde JSON' });
+
+      } catch (error) {
+        console.error('Error al actualizar la lista con JSON:', error);
+        return res.status(500).json({ success: false, message: 'Error al actualizar la lista con JSON' });
+      }
+    } else {
+      return res.status(400).json({ success: false, message: 'Datos no válidos o faltantes' });
     }
   } catch (error) {
     console.error('Error general al actualizar la lista:', error);

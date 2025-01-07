@@ -51,18 +51,43 @@ router.post('/updatelist', upload.single('excelFile'), async (req, res) => {
 // Manejo de la subida de archivo Excel
 const handleFileUpload = async (req, res, listType) => {
   const file = req.file;
-  
+
   if (!file.mimetype.includes('spreadsheet')) {
     return res.status(400).json({ success: false, message: 'El archivo debe ser un archivo Excel válido' });
   }
 
   try {
-    const formattedData = await processExcelFile(file);
-    const result = await updateKizeoList(listType, formattedData);
-    return handleResult(res, result, 'Excel');
+    // Procesar el archivo Excel en lotes
+    await processExcelFileInBatches(file, listType);
+    return res.json({ success: true, message: 'Lista actualizada correctamente desde Excel' });
   } catch (error) {
     console.error('Error al procesar el archivo Excel:', error);
     return res.status(500).json({ success: false, message: 'Error al procesar el archivo Excel' });
+  }
+};
+
+// Procesar el archivo Excel en lotes
+const processExcelFileInBatches = async (file, listType, batchSize = 1000) => {
+  const workbook = XLSX.readFile(file.path);
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const jsonDataFromExcel = XLSX.utils.sheet_to_json(sheet, { header: 1 }).slice(1); // Excluir cabecera
+
+  // Dividir los datos en lotes más pequeños
+  const batches = [];
+  for (let i = 0; i < jsonDataFromExcel.length; i += batchSize) {
+    batches.push(jsonDataFromExcel.slice(i, i + batchSize));
+  }
+
+  // Procesar cada lote de datos
+  for (const batch of batches) {
+    const formattedData = batch.map(row =>
+      row.map((cell, index) => index === 8 ? clearText(cell || '') : cell || '').join('|')
+    );
+
+    const result = await updateKizeoList(listType, formattedData);
+    if (!result.success) {
+      throw new Error('Error al actualizar la lista en un lote');
+    }
   }
 };
 
@@ -76,17 +101,6 @@ const handleJsonUpload = async (req, res, listType, jsonData) => {
     console.error('Error al procesar los datos JSON:', error);
     return res.status(500).json({ success: false, message: 'Error al procesar los datos JSON' });
   }
-};
-
-// Procesar archivo Excel
-const processExcelFile = (file) => {
-  const workbook = XLSX.readFile(file.path);
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const jsonDataFromExcel = XLSX.utils.sheet_to_json(sheet, { header: 1 }).slice(1); // Excluir cabecera
-
-  return jsonDataFromExcel.map(row =>
-    row.map((cell, index) => index === 8 ? clearText(cell || '') : cell || '').join('|')
-  );
 };
 
 // Manejar el resultado de la actualización

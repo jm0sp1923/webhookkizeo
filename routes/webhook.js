@@ -1,7 +1,7 @@
 import express from 'express';
 import fetch from 'node-fetch';
-import { ejecutarSubidaSharePoint } from '../utils/pythonUtils.js';
-import { obtenExportId } from '../utils/kizeoUtils.js';
+import { ejecutarSubidaSharePoint } from '../utils/pythonExecuter.js';
+import { obtenExportId } from '../utils/getExportId.js';
 import dotenv from 'dotenv';
 const router = express.Router();
 

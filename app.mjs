@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 
 import webhookRoutes from './routes/webhook.js';
 import indexRoutes from './routes/index.js';
+import updatelistRoutes from './routes/updatelist.js';
 
 dotenv.config();
 
@@ -17,11 +18,12 @@ app.set('views', path.join(__dirname, 'views'));
 
 
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/utils', express.static(path.join(__dirname, 'utils')));
 
 // Usar las rutas
 app.use(webhookRoutes);
 app.use(indexRoutes);
+app.use(updatelistRoutes);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

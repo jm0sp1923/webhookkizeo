@@ -5,7 +5,9 @@ import XLSX from 'xlsx';
 import clearText from '../utils/limpiarTexto.js';
 const upload = multer({ dest: 'uploads/' }); // Manejar subida de archivos
 const router = express.Router();
+import dotenv from 'dotenv';
 
+dotenv.config();
 const api_key = process.env.KIZEO_API_KEY;
 
 // Ruta para renderizar la vista de actualización
@@ -58,6 +60,8 @@ router.post('/updatelist', upload.single('excelFile'), async (req, res) => {
       console.log('Datos procesados del Excel:', jsonBody);
 
       const kizeoUrl = `https://www.kizeoforms.com/rest/v3/lists/${listType}`;
+
+      console.log("api_key", api_key);
 
       try {
         await axios.put(kizeoUrl, jsonBody, {

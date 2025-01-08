@@ -1,0 +1,8 @@
+services:
+  app:
+    image: webhookkizeo
+    ports:
+      - "3000:3000"
+    environment:
+      - KIZEO_API_KEY=YOUR_API_KEY
+      - KIZEO_API_SECRET=YOUR

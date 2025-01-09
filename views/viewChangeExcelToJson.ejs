@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargar y Convertir Excel</title>
+    <!-- Agregar Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container mt-5">
+        <!-- Botón "Volver al índice" alineado a la izquierda y con fondo rojo -->
+        <div class="text-start mb-4">
+            <a href="/" class="btn btn-danger">Volver al índice</a>
+        </div>
+
+        <!-- Título de la página -->
+        <h1 class="text-center mb-4">Sube tu archivo Excel para convertirlo a JSON</h1>
+
+        <!-- Formulario para subir el archivo -->
+        <form id="uploadForm" enctype="multipart/form-data" class="bg-light p-4 rounded shadow">
+            <div class="mb-3">
+                <input type="file" name="excelFile" id="excelFile" accept=".xls,.xlsx,.csv" required class="form-control">
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">Subir archivo</button>
+            </div>
+        </form>
+
+        <!-- Sección de descarga, oculta inicialmente -->
+        <div id="downloadSection" class="mt-4" style="display: none;">
+            <p class="text-center">El archivo ha sido procesado. Puedes descargarlo aquí:</p>
+            <div class="text-center">
+                <a id="downloadLink" href="#" download class="btn btn-success">Descargar archivo convertido</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agregar Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const downloadSection = document.getElementById('downloadSection');
+        const downloadLink = document.getElementById('downloadLink');
+
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+            const response = await fetch('/upload-excel', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Mostrar el botón de descarga
+                downloadLink.href = data.downloadUrl; // Establecer la URL del archivo
+                downloadSection.style.display = 'block'; // Mostrar la sección de descarga
+
+                // Limpiar el formulario después de la subida
+                form.reset();
+
+                // Limpiar el caché del enlace de descarga para permitir un nuevo archivo
+                downloadLink.setAttribute('href', data.downloadUrl + '?t=' + new Date().getTime()); // Forzar una nueva URL
+
+                // Forzar la descarga para evitar que el navegador lo almacene en caché
+                downloadLink.addEventListener('click', function() {
+                    setTimeout(function() {
+                        // Limpiar el enlace de descarga después de hacer clic
+                        downloadLink.removeAttribute('href');
+                        downloadSection.style.display = 'none'; // Ocultar la sección de descarga nuevamente
+                    }, 1000); // Espera 1 segundo antes de limpiar
+
+                    // Ocultar el botón de descarga después de hacer clic
+                    downloadLink.style.display = 'none';
+                });
+            } else {
+                alert('Hubo un error al procesar el archivo: ' + data.message);
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { application } from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -8,7 +8,7 @@ import webhookRoutes from './routes/webhook.js';
 import indexRoutes from './routes/index.js';
 import updatelistRoutes from './routes/updatelist.js';
 import changeExcelToJsonRoutes from './routes/changeExcelToJson.js';
-
+import apilist from './routes/apiList.js';
 // Configuración de variables de entorno
 dotenv.config();
 
@@ -34,6 +34,7 @@ app.use(webhookRoutes);
 app.use(indexRoutes);
 app.use(updatelistRoutes);
 app.use(changeExcelToJsonRoutes);
+app.use(apilist);
 
 // Manejo de errores 404
 app.use((req, res) => {

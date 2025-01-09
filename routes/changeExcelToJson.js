@@ -3,7 +3,7 @@ import multer from 'multer';
 import XLSX from 'xlsx';
 import fs from 'fs';
 import path from 'path';
-
+import cleanText from '../utils/limpiarTexto.js'; 
 // Configurar multer para subir archivos
 const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
@@ -54,7 +54,7 @@ router.post('/upload-excel', upload.single('excelFile'), (req, res) => {
             // Limpiar solo la columna 9 (índice 8 porque es 0-based)
             if (index === 8) {
                 // Asegurarse de que la celda sea un string antes de usar trim()
-                return typeof cell === 'string' ? cell.trim() : (cell || ''); // Limpiar la 9ª columna
+                return cleanText(cell || ''); // Limpiar la 9ª columna
             }
             // Mantener otras columnas sin cambios
             return cell || '';

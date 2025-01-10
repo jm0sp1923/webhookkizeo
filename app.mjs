@@ -41,6 +41,11 @@ app.use((req, res) => {
   res.status(404).render('404');
 });
 
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
+
 // Iniciar el servidor
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

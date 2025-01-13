@@ -5,8 +5,6 @@ import { exec } from "child_process";
 import fs from "fs";
 
 const router = express.Router();
-
-// Configuración de Multer para manejar la carga de archivos
 const upload = multer({ dest: "uploads/" });
 
 router.get("/fucionarExcel", async (req, res) => {
@@ -35,38 +33,31 @@ router.post(
 
       const archivoDatos = reporteAfianzado[0].path;
       const archivoBusqueda = baseCartera[0].path;
+      const processedDir = path.resolve("processed");
 
-      const scriptPath = path.resolve("fusionar_excel.py");
-      const outputFilePath = path.resolve(
-        "/processed/excel_fusionado.xlsx"
-      );
+      if (!fs.existsSync(processedDir)) {
+        fs.mkdirSync(processedDir);
+      }
 
-      const command = `python "${scriptPath}" "${archivoBusqueda}" "${archivoDatos}" "${outputFilePath}"`;
+      const outputFilePath = path.join(processedDir, "excel_fusionado.xlsx");
+      const command = `python fusionar_excel.py "${archivoBusqueda}" "${archivoDatos}" "${outputFilePath}"`;
 
       exec(command, (error, stdout, stderr) => {
         if (error) {
-          console.error(`Error ejecutando el script Python: ${error.message}`);
-          console.error(`Comando ejecutado: ${command}`);
+          console.error(`Error ejecutando el script: ${error.message}`);
           return res.status(500).json({
             success: false,
             message: "Error al procesar los archivos.",
           });
         }
 
-        if (stderr) {
-          console.error(`Error del script Python: ${stderr}`);
-        }
-
         console.log(`Resultado del script: ${stdout}`);
-
         res.json({
           success: true,
           message: "Archivos procesados exitosamente.",
           downloadUrl: `/processed/excel_fusionado.xlsx`,
         });
-        
 
-        // Limpieza de archivos temporales
         fs.unlinkSync(archivoDatos);
         fs.unlinkSync(archivoBusqueda);
       });
@@ -79,7 +70,6 @@ router.post(
   }
 );
 
-// Ruta para servir los archivos procesados
 router.use("/processed", express.static(path.resolve("processed")));
 
 export default router;

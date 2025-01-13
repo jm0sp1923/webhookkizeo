@@ -16,18 +16,20 @@
         <a href="/" class="btn btn-danger">Volver al índice</a>
       </div>
 
-      <h1 class="text-center mb-4">
-        Subir Archivos Excel para Procesar
-      </h1>
+      <h1 class="text-center mb-4">Subir Archivos Excel para Procesar</h1>
 
       <form
         id="uploadForm"
         enctype="multipart/form-data"
         class="bg-light p-4 rounded shadow"
+        action="/fucionarExcel"
+        method="post"
       >
         <!-- Campo para el archivo ReporteAfianzado -->
         <div class="mb-3">
-          <label for="reporteAfianzado" class="form-label">Reporte Afianzado</label>
+          <label for="reporteAfianzado" class="form-label"
+            >Reporte Afianzado</label
+          >
           <input
             type="file"
             name="reporteAfianzado"
@@ -96,7 +98,7 @@
         loader.style.display = "block";
 
         const formData = new FormData(form);
-        const response = await fetch("/upload-files", {
+        const response = await fetch("/fucionarExcel", {
           method: "POST",
           body: formData,
         });
@@ -111,20 +113,28 @@
             title: "¡Archivos procesados!",
             text: data.message,
           }).then(() => {
+            // Resetear la URL de descarga
             downloadLink.href = data.downloadUrl;
+
+            // Mostrar la sección de descarga
             downloadSection.style.display = "block";
+
+            // Restablecer el formulario
             form.reset();
+
+            // Asegurar que el enlace de descarga siempre tenga una URL única
             downloadLink.setAttribute(
               "href",
               data.downloadUrl + "?t=" + new Date().getTime()
             );
 
-            // Eliminar el botón de descarga después de que se haya descargado el archivo
+            // Cuando el enlace de descarga sea clickeado, esconder el formulario y botón
             downloadLink.addEventListener("click", function () {
               setTimeout(function () {
-                form.reset(); // Limpiar el formulario
-                downloadSection.style.display = "none"; // Ocultar la sección de descarga
-                downloadLink.style.display = "none"; // Ocultar el botón de descarga
+                // Limpiar el formulario
+                form.reset();
+                // Ocultar la sección de descarga
+                downloadSection.style.display = "none";
               }, 1000); // Esperar un segundo antes de ocultar el enlace
             });
           });

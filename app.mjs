@@ -1,4 +1,4 @@
-import express, { application } from 'express';
+import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -9,6 +9,7 @@ import indexRoutes from './routes/index.js';
 import updatelistRoutes from './routes/updatelist.js';
 import changeExcelToJsonRoutes from './routes/changeExcelToJson.js';
 import apilist from './routes/apiList.js';
+import fucionarExcel from './routes/fucionarExcel.js';
 // Configuración de variables de entorno
 dotenv.config();
 
@@ -31,7 +32,7 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 
 
 app.get('/health', (req, res) => {
-  res.status(200).send('OK');
+  res.status(200).render('200');
 });
 
 // Rutas
@@ -40,6 +41,7 @@ app.use(indexRoutes);
 app.use(updatelistRoutes);
 app.use(changeExcelToJsonRoutes);
 app.use(apilist);
+app.use(fucionarExcel);
 
 // Manejo de errores 404
 app.use((req, res) => {
@@ -50,6 +52,6 @@ app.use((req, res) => {
 
 // Iniciar el servidor
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Servidor escuchando en http://0.0.0.0:${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running on port ${port}`);
 });

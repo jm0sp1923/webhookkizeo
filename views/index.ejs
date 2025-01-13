@@ -3,27 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vista Index</title>
+    <title>Web Kizeo</title>
     <link rel="icon" href="../public/img/logo.png" type="image/x-icon" />
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
   </head>
   <body class="d-flex justify-content-center align-items-center min-vh-100 bg-light">
     <div class="text-center">
       <h1 class="mb-4">Opciones de actualización</h1>
-      
+
       <!-- Opción para actualizar listas -->
-      <form action="updateListsView">
-        <button type="submit" class="btn btn-primary mb-3">Ir a actualizar listas</button>
+      <form action="updateListsView" class="mb-3">
+        <button type="submit" class="btn btn-primary w-100">Ir a actualizar listas</button>
       </form>
 
       <!-- Opción para convertir Excel a JSON -->
-      <form action="changeExcelToJson">
-        <button type="submit" class="btn btn-secondary">Convertir Excel a JSON</button>
+      <form action="changeExcelToJson" class="mb-3">
+        <button type="submit" class="btn btn-secondary w-100">Convertir Excel a JSON</button>
+      </form>
+
+      <!-- Opción adicional -->
+      <form action="fucionarExcel" class="mb-3">
+        <button type="submit" class="btn btn-dark w-100">Fucionar Excel</button>
       </form>
     </div>
 
-    <!-- Bootstrap JS and dependencies (optional) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

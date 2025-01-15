@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Subir Archivo JSON</title>
+    <title>Subir Archivo Excel</title>
     <link rel="icon" href="../public/img/logo.png" type="image/x-icon" />
     <!-- Bootstrap CSS -->
     <link
@@ -15,6 +15,9 @@
     <style>
       .btn-uniform {
         width: 150px; /* Ajusta el ancho a tus necesidades */
+      }
+      #loader {
+        display: none;
       }
     </style>
   </head>
@@ -43,16 +46,16 @@
           </select>
         </div>
 
-        <!-- Input para subir archivo JSON -->
+        <!-- Input para subir archivo Excel -->
         <div class="mb-3">
-          <label for="jsonFile" class="form-label"
-            >Seleccione un archivo JSON:</label
+          <label for="excelFile" class="form-label"
+            >Seleccione un archivo Excel:</label
           >
           <input
             type="file"
-            id="jsonFile"
-            name="jsonFile"
-            accept=".json"
+            id="excelFile"
+            name="excelFile"
+            accept=".xlsx"
             required
             class="form-control"
           />
@@ -62,6 +65,15 @@
           <button type="submit" class="btn btn-primary btn-uniform">Subir</button>
         </div>
       </form>
+
+      <!-- Loader mientras se procesan los archivos -->
+      <div id="loader" class="text-center mt-4">
+        <output class="spinner-border text-primary" aria-live="polite">
+          <span class="visually-hidden">Cargando...</span>
+        </output>
+
+        <p>Procesando archivo...</p>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -71,9 +83,13 @@
     <script>
       // Capturar el formulario
       const form = document.getElementById("uploadForm");
+      const loader = document.getElementById("loader");
 
       form.addEventListener("submit", async function (event) {
         event.preventDefault(); // Prevenir el envío normal del formulario
+
+        // Mostrar loader mientras se procesa el archivo
+        loader.style.display = "block";
 
         const formData = new FormData(form);
 
@@ -84,6 +100,9 @@
           });
 
           const result = await response.json();
+
+          // Ocultar loader después de procesar
+          loader.style.display = "none";
 
           if (result.success) {
             // Mostrar alerta de éxito si la respuesta es exitosa
@@ -101,7 +120,9 @@
             });
           }
         } catch (error) {
-        
+          // Ocultar loader en caso de error
+          loader.style.display = "none";
+
           Swal.fire({
             icon: "error",
             title: "Error en la conexión",

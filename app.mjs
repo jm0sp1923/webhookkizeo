@@ -7,7 +7,6 @@ import dotenv from 'dotenv';
 import webhookRoutes from './routes/webhook.js';
 import indexRoutes from './routes/index.js';
 import updatelistRoutes from './routes/updatelist.js';
-import changeExcelToJsonRoutes from './routes/changeExcelToJson.js';
 import apilist from './routes/apiList.js';
 import fucionarExcel from './routes/fucionarExcel.js';
 // Configuración de variables de entorno
@@ -39,7 +38,6 @@ app.get('/health', (req, res) => {
 app.use(webhookRoutes);
 app.use(indexRoutes);
 app.use(updatelistRoutes);
-app.use(changeExcelToJsonRoutes);
 app.use(apilist);
 app.use(fucionarExcel);
 

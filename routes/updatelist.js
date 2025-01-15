@@ -1,12 +1,12 @@
 import express from 'express';
 import axios from 'axios';
 import multer from 'multer';
-import { readFileSync } from 'fs'; // Importación correcta de fs para ESM
-const upload = multer({ dest: 'uploads/' }); // Manejar subida de archivos
-const router = express.Router();
 import dotenv from 'dotenv';
+import changeExcelToJson from '../utils/changeExcelToJson.js'; // Asegúrate de que esta función esté correctamente exportada
 
 dotenv.config();
+const upload = multer({ dest: 'uploads/' });
+const router = express.Router();
 const api_key = process.env.KIZEO_API_KEY;
 
 // Ruta para renderizar la vista de actualización
@@ -20,44 +20,47 @@ router.get('/updateListsView', async (req, res) => {
 });
 
 // Ruta para actualizar listas
-router.post('/updatelist', upload.single('jsonFile'), async (req, res) => {
+router.post('/updatelist', upload.single('excelFile'), async (req, res) => {
   try {
     const { listType } = req.body;
     console.log('Datos recibidos:', req.body);
-   
-      // Procesar archivo JSON
-      const file = req.file;
-      console.log('Archivo JSON recibido:', file);
 
-      if (!file.mimetype.includes('json')) {
-        return res.status(400).json({ success: false, message: 'El archivo debe ser un archivo JSON válido' });
-      }
+    // Procesar archivo Excel usando la función changeExcelToJson
+    const file = req.file;
+    console.log('Archivo Excel recibido:', file);
 
-      // Leer archivo JSON
-      const jsonData = readFileSync(file.path, 'utf-8');
-      const jsonBody = JSON.parse(jsonData);
-      console.log('Datos recibidos como JSON:', jsonBody);
-
-      const kizeoUrl = `https://www.kizeoforms.com/rest/v3/lists/${listType}`;
-
-      try {
-        await axios.put(kizeoUrl, jsonBody, {
-          headers: {
-            Authorization: api_key,
-          },
-        });
-
-        return res.json({ success: true, message: 'Lista actualizada correctamente desde JSON' });
-
-      } catch (error) {
-        console.error('Error al actualizar la lista con JSON:', error);
-        return res.status(500).json({ success: false, message: 'Error al actualizar la lista con JSON' });
-      }
-    } catch (error) {
-      console.error('Error general al actualizar la lista:', error);
-      return res.status(500).json({ success: false, message: 'Error general al actualizar la lista' });
+    if (!file.mimetype.includes('excel') && !file.mimetype.includes('spreadsheetml')) {
+      return res.status(400).json({ success: false, message: 'El archivo debe ser un archivo Excel válido' });
     }
+
+    // Usar la función changeExcelToJson para convertir el Excel a JSON
+    const jsonBody = await changeExcelToJson(file);
+
+    if (!jsonBody) {
+      return res.status(400).json({ success: false, message: 'Error al procesar el archivo Excel' });
+    }
+
+    // Construir la URL de Kizeo con el tipo de lista
+    const kizeoUrl = `https://www.kizeoforms.com/rest/v3/lists/${listType}`;
+
+    try {
+      // Actualizar la lista en Kizeo
+      await axios.put(kizeoUrl, jsonBody, {
+        headers: {
+          Authorization: api_key,
+        },
+      });
+
+      return res.json({ success: true, message: 'Lista actualizada correctamente desde Excel' });
+
+    } catch (error) {
+      console.error('Error al actualizar la lista con Excel:', error);
+      return res.status(500).json({ success: false, message: 'Error al actualizar la lista con Excel' });
+    }
+  } catch (error) {
+    console.error('Error general al actualizar la lista:', error);
+    return res.status(500).json({ success: false, message: 'Error general al actualizar la lista' });
   }
- );
+});
 
 export default router;

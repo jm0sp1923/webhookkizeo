@@ -35,12 +35,9 @@ router.post(
       const archivoBusqueda = baseCartera[0].path;
       const processedDir = path.resolve("processed");
 
-      if (!fs.existsSync(processedDir)) {
-        fs.mkdirSync(processedDir);
-      }
 
       const outputFilePath = path.join(processedDir, "excel_fusionado.xlsx");
-      const command = `python fusionar_excel.py "${archivoBusqueda}" "${archivoDatos}" "${outputFilePath}"`;
+      const command = `python ./utils/pythonScripts/fusionar_excel.py "${archivoBusqueda}" "${archivoDatos}" "${outputFilePath}"`;
 
       exec(command, (error, stdout, stderr) => {
         if (error) {

@@ -38,8 +38,8 @@ def fucionar_excel(archivo_datos, archivo_busqueda):
                                                 'Nombres / Siglas', 'Apellidos / Razon Social', 'Tipo Amparo', 'Cobertura',
                                                 'Direccion', 'Ciudad', 'Estado', 'ETAPA DE COBRO']]
 
-    # Asegurarse de que la carpeta 'processed' exista dentro del proyecto
-    project_folder = os.path.dirname(os.path.abspath(__file__))  # Obtiene el directorio del proyecto
+    # Usar el directorio actual del proyecto (raíz del proyecto)
+    project_folder = os.getcwd()  # Obtiene el directorio de trabajo actual (raíz del proyecto)
     processed_folder = os.path.join(project_folder, 'processed')  # Ruta completa a la carpeta 'processed'
 
     if not os.path.exists(processed_folder):

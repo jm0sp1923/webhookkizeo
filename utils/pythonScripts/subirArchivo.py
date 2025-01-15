@@ -5,7 +5,7 @@ import os
 from office365.runtime.auth.user_credential import UserCredential
 from office365.sharepoint.client_context import ClientContext
 from dotenv import load_dotenv
-from crearCarpeta import crear_carpeta
+from utils.pythonScripts.crearCarpeta import crear_carpeta
 
 load_dotenv()
 

@@ -2,7 +2,8 @@ import express from 'express';
 import axios from 'axios';
 import multer from 'multer';
 import dotenv from 'dotenv';
-import changeExcelToJson from '../utils/changeExcelToJson.js'; // Asegúrate de que esta función esté correctamente exportada
+import fs from 'fs'; 
+import changeExcelToJson from '../utils/changeExcelToJson.js'; 
 
 dotenv.config();
 const upload = multer({ dest: 'uploads/' });

@@ -3,7 +3,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
-// Importar rutas
 import webhookRoutes from './routes/webhook.js';
 import indexRoutes from './routes/index.js';
 import updatelistRoutes from './routes/updatelist.js';
@@ -11,11 +10,9 @@ import apilist from './routes/apiList.js';
 import fucionarExcel from './routes/fucionarExcel.js';
 import responseTimeLogger from './middlewares/responseTimeLogger .js';
 import resourceUsageLogger from './middlewares/resourceUsageLogger.js'; 
+import logger from './utils/logger.js';
 
-// Importar configuración de logger
-import logger from './utils/logger.js'; // Importar el logger de Winston
 
-// Configuración de variables de entorno
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);

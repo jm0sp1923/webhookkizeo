@@ -5,7 +5,7 @@ import os
 from office365.runtime.auth.user_credential import UserCredential
 from office365.sharepoint.client_context import ClientContext
 from dotenv import load_dotenv
-from utils.pythonScripts.crearCarpeta import crear_carpeta
+from crearCarpeta import crear_carpeta
 
 load_dotenv()
 
@@ -64,13 +64,16 @@ def subir_archivo_a_sharepoint(url_sitio, carpeta_base, tipo_diligencia, nombre_
         archivo_stream = BytesIO(contenido_archivo)
         carpeta_objetivo.upload_file(nombre_del_archivo, archivo_stream).execute_query()
 
-        print(f"Archivo '{nombre_del_archivo}' subido con éxito a '{ruta_destino}'")
+        # Construir la URL completa
+        path_file_upload = f"{url_sitio}/{ruta_destino}/{nombre_del_archivo}"
+        
+        print(path_file_upload)
+        return path_file_upload
 
     except Exception as e:
         print(f"Error al subir el archivo: {e}")
         import traceback
         traceback.print_exc()
-
 
 if __name__ == "__main__":
     import sys

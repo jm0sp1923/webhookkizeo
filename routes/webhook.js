@@ -13,7 +13,7 @@ router.post('/webhook', async (req, res) => {
 
   console.log(JSON.stringify(req.body, null, 2));
 
-  try {
+  try {   
     const zona = fields?.zonas?.result?.value?.code;
     const diligencia = fields?.acta_de_diligencia?.result?.value;
 

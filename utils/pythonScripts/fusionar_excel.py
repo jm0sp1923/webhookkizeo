@@ -34,9 +34,9 @@ def fucionar_excel(archivo_datos, archivo_busqueda):
     archivo_unido = pd.merge(archivo_datos, archivo_busqueda, left_on=NUMERO_CUENTA, right_on=CUENTA, how='inner', validate='many_to_many')
 
     # Seleccionar las columnas necesarias
-    archivo_unido_seleccionado = archivo_unido[['Cuenta', 'Inmobiliaria', 'Nit Inmobliaria', 'Identificacion Tercero',
-                                                'Nombres / Siglas', 'Apellidos / Razon Social', 'Tipo Amparo', 'Cobertura',
-                                                'Direccion', 'Ciudad', 'Estado', 'ETAPA DE COBRO']]
+    archivo_unido_seleccionado = archivo_unido[['Inmobiliaria','Nit Inmobliaria','Cuenta','Identificacion Tercero',
+                                               'Nombres / Siglas', 'Apellidos / Razon Social', 'Tipo Amparo', 'Cobertura',
+                                              'Direccion', 'Ciudad_y', 'Estado', 'ETAPA DE COBRO ACTUAL']]
 
     # Usar el directorio actual del proyecto (raíz del proyecto)
     project_folder = os.getcwd()  # Obtiene el directorio de trabajo actual (raíz del proyecto)
